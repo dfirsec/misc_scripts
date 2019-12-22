@@ -33,7 +33,7 @@ chmod +x update_git_repo.sh
 Run the script by providing your github username followed by the repository name.  
 
 ```text
-usage: ./update_git_repo.sh {USERNAME} {REPO}
+usage: ./update_git_repo.sh {USER} {REPO}
 
 
 Backing up /mnt/d/Code/Python/ioc-search...
