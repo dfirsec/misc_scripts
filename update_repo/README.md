@@ -21,7 +21,7 @@ git clone https://github.com/{USER}/{REPO}.git
 
 ### Step 2
 
-Copy the script to your repo source directory and make it executable.
+Copy the script to your repository source directory and make it executable.
 
 ```text
 chmod +x update_git_repo.sh
@@ -29,7 +29,7 @@ chmod +x update_git_repo.sh
 
 ### Step 3
 
-Run the script by providing your github username followed by the repo name.  
+Run the script by providing your github username followed by the repository name.  
 
 ```text
 usage: ./update_git_repo.sh {USERNAME} {REPO}
