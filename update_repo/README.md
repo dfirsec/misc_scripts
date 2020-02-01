@@ -61,4 +61,7 @@ Total 6 (delta 0), reused 0 (delta 0)
 
 Note: Recommend adding `*.sh` to your .gitignore file so the script is not tracked and uploaded.
 
-*Ref: <https://help.github.com/en/github/using-git/ignoring-files>*
+Ref: <https://help.github.com/en/github/using-git/ignoring-files>
+
+What to check if gitignore is not working:
+<https://stackoverflow.com/questions/7529266/git-global-ignore-not-working/22835691#22835691>
