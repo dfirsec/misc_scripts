@@ -61,6 +61,9 @@ Total 6 (delta 0), reused 0 (delta 0)
 
 Note: Recommend adding `*.sh` to your .gitignore file so the script is not tracked and uploaded.
 
+```
+---------------------------------------------------------------------
+```
 *Ref: 
 <https://help.github.com/en/github/using-git/ignoring-files>*
 
