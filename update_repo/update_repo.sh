@@ -29,6 +29,11 @@ echo
 echo "Backup finished!"
 date
 
+# Remove all files from git cache
+git rm -r --cached .
+git add .
+git commit -am "Refreshing .gitignore"
+
 # Check out to a temporary branch:
 git checkout --orphan TEMP_BRANCH
 
