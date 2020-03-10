@@ -9,3 +9,4 @@ Script Name | Use Function
 `termcolors.py`| python terminal output color wrapper
 `update_repo`| remove old commits from github repo
 `pass_gen.py`| password generator
+`ff_hist_viewer.py`| firefox history viewer
