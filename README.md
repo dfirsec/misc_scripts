@@ -8,4 +8,4 @@ Script Name | Use Function
 `mac_cleaner`| cleanup script I use on my own Mac
 `termcolors.py`| python terminal output color wrapper
 `update_repo`| remove old commits from github repo
-`sub_finder.py`| retrieve subdomains from given domain
+`pass_gen.py`| password generator
