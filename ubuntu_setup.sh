@@ -167,6 +167,9 @@ done
 PROCESSING "[ Downloading volatility3 ]"
 git clone https://github.com/volatilityfoundation/volatility3.git
 
+PROCESSING "[ Installing gobuster ]"
+go get github.com/OJ/gobuster
+
 ############################
 #   setup paths
 ############################
@@ -180,9 +183,6 @@ if [ $? -eq 1 ]; then
 	echo "export GOBIN=\$HOME/.go/bin" >>~/.bashrc
 	echo "export PATH=\$PATH:\$GOBIN" >>~/.bashrc
 fi
-PROCESSING "[ Updating Prompt ]"
-alias brc='source ~/.bashrc'
-brc
 
-PROCESSING "[ Installing gobuster ]"
-go get github.com/OJ/gobuster
+PROCESSING "[ Updating Prompt ]"
+exec bash
