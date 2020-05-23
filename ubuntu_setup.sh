@@ -29,9 +29,12 @@ PROCESSING() {
 }
 
 INSTALL_CHECK() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle pefile xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant oracle-java8-installer ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant oracle-java8-installer ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb)
 	for name in "${progs[@]}"; do
-		if ! [ -x "$(command -v "$name")" ]; then
+		dpkg -s "$name" &>/dev/null
+		if [ $? -eq 0 ]; then
+			echo "$name is installed" &>/dev/null
+		else
 			if [[ $name == "code" ]]; then
 				PROCESSING "[ Importing the Microsoft GPG key ]"
 				wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
@@ -113,8 +116,6 @@ INSTALL_CHECK() {
 				PROCESSING "[ Installing $name ]"
 				sudo apt install "$name" -y
 			fi
-		else
-			echo "$name already installed, skipping..." &>/dev/null
 		fi
 	done
 }
@@ -148,7 +149,7 @@ done
 ############################
 #   pip installations
 ############################
-pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy)
+pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy pefile)
 PROCESSING "[ Updating pip and installing modules ]"
 python3 -m pip install -U pip
 for name in "${pip_progs[@]}"; do
