@@ -154,8 +154,6 @@ for name in "${bp_dirs[@]}"; do
 	fi
 done
 
-# exit from root
-exit
 ############################
 #   pip installations
 ############################
