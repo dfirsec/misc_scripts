@@ -177,15 +177,18 @@ done
 ############################
 #   git installations
 ############################
-if [[ ! -d "volatility3" ]]; then
+vol_dir="$HOME/volatility3"
+if [[ -d $vol_dir ]]; then
 	echo 'skipping' &>/dev/null
 else
 	PROCESSING "[ Downloading volatility3 ]"
 	git clone https://github.com/volatilityfoundation/volatility3.git
-
-	PROCESSING "[ Installing gobuster ]"
-	go get github.com/OJ/gobuster
 fi
+
+
+PROCESSING "[ Installing gobuster ]"
+go get github.com/OJ/gobuster
+
 
 ############################
 #   setup paths
