@@ -29,7 +29,7 @@ PROCESSING() {
 }
 
 INSTALL_CHECK() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant oracle-java8-installer ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb)
 	for name in "${progs[@]}"; do
 		dpkg -s "$name" &>/dev/null
 		if [ $? -eq 0 ]; then
@@ -60,11 +60,11 @@ INSTALL_CHECK() {
 				if [ $? -eq 1 ]; then
 					echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 				fi
-			elif [[ $name == "oracle-java8-installer" ]]; then
-				PROCESSING "[ Installing Oracle Java 8 ]"
-				echo "" | sudo add-apt-repository ppa:webupd8team/java
-				sudo apt update
-				sudo apt install oracle-java8-installer -y
+			# elif [[ $name == "oracle-java8-installer" ]]; then
+			# 	PROCESSING "[ Installing Oracle Java 8 ]"
+			# 	echo "" | sudo add-apt-repository ppa:webupd8team/java
+			# 	sudo apt update
+			# 	sudo apt install oracle-java8-installer -y
 			elif [[ $name == "sublime-text" ]]; then
 				PROCESSING "[ Installing Sublime Text ]" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
 				wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
@@ -81,12 +81,16 @@ INSTALL_CHECK() {
 				wget "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
 				chmod +x "stegsolve.jar"
 			elif [[ $name == "hashcat" ]]; then
-				PROCESSING "[ Installing hashcat ]"
-				wget https://hashcat.net/files/hashcat-5.1.0.7z
-				p7zip -d hashcat-5.1.0.7z
-				cd hashcat-5.1.0 || exit
-				cp hashcat64.bin /usr/bin/
-				ln -s /usr/bin/hashcat64.bin /usr/bin/hashcat
+				if [[ -x $(command -v hashcat) ]]; then
+					echo "$name is installed" &>/dev/null
+				else
+					PROCESSING "[ Installing hashcat ]"
+					wget https://hashcat.net/files/hashcat-5.1.0.7z
+					p7zip -d hashcat-5.1.0.7z
+					cd hashcat-5.1.0 || exit
+					cp hashcat64.bin /usr/bin/
+					ln -s /usr/bin/hashcat64.bin /usr/bin/hashcat
+				fi
 			elif [[ $name == "vnc_viewer.deb" ]]; then
 				PROCESSING "[ Install Real VNC Viewer ]"
 				wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.17.1113-Linux-x64.deb" -O vnc_viewer.deb
@@ -150,15 +154,14 @@ done
 #   pip installations
 ############################
 pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy pefile)
-PROCESSING "[ Updating pip and installing modules ]"
-python3 -m pip install -U pip
 for name in "${pip_progs[@]}"; do
-	if python3 -c "import $name" &>/dev/null; then
-		echo 'skipping' &>/dev/null
-	else
-		PROCESSING "[ Installing $name ]"
-		pip3 install "$name"
-	fi
+		python3 -c "import $name" &>/dev/null
+		if [ $? -eq 0 ]; then
+			echo 'skipping' &>/dev/null
+		else
+			PROCESSING "[ Installing $name ]"
+			pip3 install "$name"
+		fi
 done
 
 ############################
@@ -185,4 +188,5 @@ if [ $? -eq 1 ]; then
 fi
 
 PROCESSING "[ Updating Prompt ]"
+echo "Done!"
 exec bash
