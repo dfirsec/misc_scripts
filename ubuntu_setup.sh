@@ -80,7 +80,7 @@ INSTALL_CHECK() {
 				chmod +x "stegsolve.jar"
 			elif [[ $name == "hashcat" ]]; then
 				if [[ -x $(command -v hashcat) ]]; then
-					echo "$name already installed" &>/dev/null
+					echo 'skipping' &>/dev/null
 				else
 					PROCESSING "[ Installing hashcat ]"
 					wget https://hashcat.net/files/hashcat-5.1.0.7z
@@ -111,11 +111,19 @@ INSTALL_CHECK() {
 				PROCESSING "[ Installing Snap ]"
 				sudo apt install snapd -y
 
-				PROCESSING "[ Installing Spotify ]"
-				sudo snap install spotify
+				snap_progs=(spotify volatility-phocean)
+				for prog in "${snap_progs[@]}"; do
+					snap list | grep "$prog" &>/dev/null
+					if [ $? -eq 0 ]; then
+						echo 'skipping' &>/dev/null
+					else
+						PROCESSING "[ Installing Spotify ]"
+						sudo snap install spotify
 
-				PROCESSING "[ Installing volatility ]"
-				sudo snap install volatility-phocean
+						PROCESSING "[ Installing volatility ]"
+						sudo snap install volatility-phocean
+					fi
+				done
 			else
 				PROCESSING "[ Installing $name ]"
 				sudo apt install "$name" -y
@@ -164,11 +172,15 @@ done
 ############################
 #   git installations
 ############################
-PROCESSING "[ Downloading volatility3 ]"
-git clone https://github.com/volatilityfoundation/volatility3.git
+if [[ ! -d "volatility3" ]]; then
+	echo 'skipping' &>/dev/null
+else
+	PROCESSING "[ Downloading volatility3 ]"
+	git clone https://github.com/volatilityfoundation/volatility3.git
 
-PROCESSING "[ Installing gobuster ]"
-go get github.com/OJ/gobuster
+	PROCESSING "[ Installing gobuster ]"
+	go get github.com/OJ/gobuster
+fi
 
 ############################
 #   setup paths
