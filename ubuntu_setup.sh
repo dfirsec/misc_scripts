@@ -3,6 +3,12 @@
 # Credit: JohnHammond
 # https://github.com/JohnHammond/ignition_key/blob/master/ignition_key.sh
 
+# check if ran as sudo
+if [ "$EUID" -eq 0 ]; then 
+	echo "Please do not run as root"
+  	exit
+fi
+
 # Define colors ]
 ERROR=$(tput bold && tput setaf 1)
 SUCCESS=$(tput bold && tput setaf 2)
@@ -32,7 +38,7 @@ PROCESSING "[ Forcing color prompt in ~/.bashrc ]"
 echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 
 INSTALL_CHECK() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster)
 	for name in "${progs[@]}"; do
 		dpkg -s "$name" &>/dev/null
 		if [ $? -eq 0 ]; then
@@ -75,9 +81,13 @@ INSTALL_CHECK() {
 				sudo apt update
 				sudo apt install simplescreenrecorder -y
 			elif [[ $name == "stegsolve" ]]; then
-				PROCESSING "[ Downloading stegsolve.jar ]"
-				wget "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
-				chmod +x "stegsolve.jar"
+				if [ -f "stegsolve.jar" ]; then
+					echo 'skipping' &>/dev/null
+				else
+					PROCESSING "[ Downloading stegsolve.jar ]"
+					wget "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
+					chmod +x "stegsolve.jar"
+				fi
 			elif [[ $name == "hashcat" ]]; then
 				if [[ -x $(command -v hashcat) ]]; then
 					echo 'skipping' &>/dev/null
@@ -136,6 +146,12 @@ INSTALL_CHECK() {
 		fi
 	done
 }
+
+# Testing if root ]
+if [ $UID -ne 0 ]; then
+	ERROR "You must run this script as root!" && echo
+	exit
+fi
 
 PROCESSING "[ Updating repositories ]"
 UPDATE
