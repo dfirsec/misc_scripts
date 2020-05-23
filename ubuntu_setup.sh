@@ -3,7 +3,7 @@
 # Credit: JohnHammond
 # https://github.com/JohnHammond/ignition_key/blob/master/ignition_key.sh
 
-# Define colors ]
+# Define colors
 ERROR=$(tput bold && tput setaf 1)
 SUCCESS=$(tput bold && tput setaf 2)
 WARNING=$(tput bold && tput setaf 3)
@@ -38,12 +38,15 @@ PROCESSING "[ Forcing color prompt in ~/.bashrc ]"
 echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 
 INSTALL_CHECK() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager openjdk-11-jre-headless)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager openjdk-11-jre-headless ghidra volatility3)
 	for name in "${progs[@]}"; do
 		dpkg -s "$name" &>/dev/null
 		if [ $? -eq 0 ]; then
 			echo "$name is installed" &>/dev/null
 		else
+			############################
+			#   vscode
+			############################
 			if [[ $name == "code" ]]; then
 				PROCESSING "[ Importing the Microsoft GPG key ]"
 				wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
@@ -51,17 +54,29 @@ INSTALL_CHECK() {
 				sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
 				sudo apt update
 				sudo apt install code -y
+
+			############################
+			#   docker
+			############################
 			elif [[ $name == "docker.io" ]]; then
 				PROCESSING "[ Installing Docker ]"
 				sudo apt install docker.io -y
 				sudo groupadd docker
 				sudo usermod -aG docker "$(logname)"
+
+			############################
+			#   atom
+			############################
 			elif [[ $name == "atom" ]]; then
 				PROCESSING "[ Installing Atom ]"
 				wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
 				sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
 				sudo apt update
 				sudo apt install atom -y
+
+			############################
+			#   xclip
+			############################
 			elif [[ $name == "xclip" ]]; then
 				PROCESSING "[ Installing xclip ]"
 				sudo apt install -y xclip
@@ -69,17 +84,29 @@ INSTALL_CHECK() {
 				if [ $? -eq 1 ]; then
 					echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 				fi
+
+			############################
+			#   sublime
+			############################
 			elif [[ $name == "sublime-text" ]]; then
 				PROCESSING "[ Installing Sublime Text ]" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
 				wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
 				echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
 				sudo apt update
 				sudo apt install sublime-text -y
+
+			############################
+			#  simplescreenrecorder
+			############################
 			elif [[ $name == "simplescreenrecorder" ]]; then
 				PROCESSING "[ Installing SimpleScreenRecorder ]"
 				echo "" | sudo add-apt-repository ppa:maarten-baert/simplescreenrecorder
 				sudo apt update
 				sudo apt install simplescreenrecorder -y
+
+			############################
+			#  stegsolve
+			############################
 			elif [[ $name == "stegsolve" ]]; then
 				if [ -f "stegsolve.jar" ]; then
 					echo 'skipping' &>/dev/null
@@ -88,6 +115,10 @@ INSTALL_CHECK() {
 					wget "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
 					chmod +x "stegsolve.jar"
 				fi
+
+			############################
+			#   hashcat
+			############################
 			elif [[ $name == "hashcat" ]]; then
 				if [[ -x $(command -v hashcat) ]]; then
 					echo 'skipping' &>/dev/null
@@ -101,6 +132,10 @@ INSTALL_CHECK() {
 					cd || exit
 					rm -rf hashcat-5.1.0
 				fi
+
+			############################
+			#   vnc
+			############################
 			elif [[ $name == "vnc" ]]; then
 				sudo dpkg-query -l | grep vnc &>/dev/null
 				if [ $? -eq 0 ]; then
@@ -122,6 +157,10 @@ INSTALL_CHECK() {
 						echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
 					fi
 				fi
+
+			############################
+			#   snapd
+			############################
 			elif [[ $name == "snapd" ]]; then
 				PROCESSING "[ Installing Snap ]"
 				sudo apt install snapd -y
@@ -139,6 +178,41 @@ INSTALL_CHECK() {
 						sudo snap install volatility-phocean
 					fi
 				done
+
+			############################
+			#   ghidra
+			############################
+			elif [[ $name == "ghidra" ]]; then
+				ghidra_dir="/opt/ghidra"
+				jdk_dir="/opt/jdk-11"
+				if [[ -d $ghidra_dir ]]; then
+					WARNING "ghidra already installed here: $ghidra_dir"
+				else
+					wget 'https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip' --no-hsts
+					sudo unzip -q ghidra_9.1.2_PUBLIC_20200212.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
+				fi
+				if [[ -d $jdk_dir ]]; then
+					WARNING "jdk-11 already installed here: $jdk_dir"
+				else
+					wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
+					sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
+				fi
+
+			############################
+			#   volatility3
+			############################
+			elif [[ $name == "volatility3" ]]; then
+				vol_dir="$HOME/volatility3"
+				if [[ -d $vol_dir ]]; then
+					echo 'skipping' &>/dev/null
+				else
+					PROCESSING "[ Downloading volatility3 ]"
+					git clone https://github.com/volatilityfoundation/volatility3.git
+				fi
+
+			############################
+			#   process all others
+			############################
 			else
 				PROCESSING "[ Installing $name ]"
 				sudo apt install "$name" -y
@@ -177,37 +251,6 @@ for name in "${pip_progs[@]}"; do
 		pip3 install "$name"
 	fi
 done
-
-############################
-#   git installations
-############################
-vol_dir="$HOME/volatility3"
-if [[ -d $vol_dir ]]; then
-	echo 'skipping' &>/dev/null
-else
-	PROCESSING "[ Downloading volatility3 ]"
-	git clone https://github.com/volatilityfoundation/volatility3.git
-fi
-
-
-############################
-#   ghidra installation
-############################
-ghidra_dir="/opt/ghidra"
-jdk_dir="/opt/jdk-11"
-if [[ -d $ghidra_dir ]]; then
-	WARNING "ghidra already installed here: $ghidra_dir"
-else
-	wget 'https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip' --no-hsts
-	sudo unzip -q ghidra_9.1.2_PUBLIC_20200212.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
-fi
-if [[ -d $jdk_dir ]]; then
-	WARNING "jdk-11 already installed here: $jdk_dir"
-else
-	wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
-	sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
-fi
-
 
 ############################
 #   setup paths
