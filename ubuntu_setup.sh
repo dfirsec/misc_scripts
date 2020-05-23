@@ -11,8 +11,9 @@ PROCESSING=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
 
 # check if ran as sudo
-if [ "$EUID" -eq 0 ]; then 
-	ERROR "Please do not run as root"
+if [ "$EUID" -eq 0 ]
+then 
+	ERROR "Please do not run as root" && echo
   	exit
 fi
 
