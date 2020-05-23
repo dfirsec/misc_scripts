@@ -3,18 +3,18 @@
 # Credit: JohnHammond
 # https://github.com/JohnHammond/ignition_key/blob/master/ignition_key.sh
 
-# check if ran as sudo
-if [ "$EUID" -eq 0 ]; then 
-	echo "Please do not run as root"
-  	exit
-fi
-
 # Define colors ]
 ERROR=$(tput bold && tput setaf 1)
 SUCCESS=$(tput bold && tput setaf 2)
 WARNING=$(tput bold && tput setaf 3)
 PROCESSING=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
+
+# check if ran as sudo
+if [ "$EUID" -eq 0 ]; then 
+	ERROR echo "Please do not run as root"
+  	exit
+fi
 
 UPDATE() {
 	sudo apt update
@@ -146,12 +146,6 @@ INSTALL_CHECK() {
 		fi
 	done
 }
-
-# Testing if root ]
-if [ $UID -ne 0 ]; then
-	ERROR "You must run this script as root!" && echo
-	exit
-fi
 
 PROCESSING "[ Updating repositories ]"
 UPDATE
