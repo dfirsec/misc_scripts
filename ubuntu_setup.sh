@@ -12,7 +12,7 @@ RESET=$(tput sgr0)
 
 # check if ran as sudo
 if [ "$EUID" -eq 0 ]; then 
-	ERROR echo "Please do not run as root"
+	ERROR "Please do not run as root"
   	exit
 fi
 
