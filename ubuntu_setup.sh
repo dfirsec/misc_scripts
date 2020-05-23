@@ -10,18 +10,6 @@ WARNING=$(tput bold && tput setaf 3)
 PROCESSING=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
 
-# check if ran as sudo
-if [ "$EUID" -eq 0 ]
-then 
-	ERROR "Please do not run as root" && echo
-  	exit
-fi
-
-UPDATE() {
-	sudo apt update
-	sudo apt upgrade -y
-}
-
 ERROR() {
 	echo -e "\n${ERROR}${1}${RESET}"
 }
@@ -33,6 +21,17 @@ WARNING() {
 }
 PROCESSING() {
 	echo -e "\n${PROCESSING}${1}${RESET}"
+}
+
+# check if ran as sudo
+if [ "$EUID" -eq 0 ]; then
+	ERROR "Please do not run as root" && echo
+	exit
+fi
+
+UPDATE() {
+	sudo apt update
+	sudo apt upgrade -y
 }
 
 PROCESSING "[ Forcing color prompt in ~/.bashrc ]"
@@ -104,25 +103,25 @@ INSTALL_CHECK() {
 				fi
 			elif [[ $name == "vnc" ]]; then
 				sudo dpkg-query -l | grep vnc &>/dev/null
-					if [ $? -eq 0 ]; then
-						echo "$name is installed" &>/dev/null
-					else
-						PROCESSING "[ Install Real VNC Viewer ]"
-						wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb" -O vnc_viewer.deb
-						dpkg -i vnc_viewer.deb
-						rm vnc_viewer.deb
+				if [ $? -eq 0 ]; then
+					echo "$name is installed" &>/dev/null
+				else
+					PROCESSING "[ Install Real VNC Viewer ]"
+					wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb" -O vnc_viewer.deb
+					dpkg -i vnc_viewer.deb
+					rm vnc_viewer.deb
 
-						PROCESSING "[ Install Real VNC Connect (Server) ]"
-						wget 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
-						dpkg -i vnc_server.deb
-						rm vnc_server.deb
+					PROCESSING "[ Install Real VNC Connect (Server) ]"
+					wget 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
+					dpkg -i vnc_server.deb
+					rm vnc_server.deb
 
-						PROCESSING "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
-						grep "vncserver-x11-serviced.service" /etc/rc.local
-						if [ $? -eq 1 ]; then
-							echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
-						fi
+					PROCESSING "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
+					grep "vncserver-x11-serviced.service" /etc/rc.local
+					if [ $? -eq 1 ]; then
+						echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
 					fi
+				fi
 			elif [[ $name == "snapd" ]]; then
 				PROCESSING "[ Installing Snap ]"
 				sudo apt install snapd -y
@@ -189,7 +188,6 @@ else
 	PROCESSING "[ Downloading volatility3 ]"
 	git clone https://github.com/volatilityfoundation/volatility3.git
 fi
-
 
 ############################
 #   setup paths
