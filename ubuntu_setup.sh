@@ -150,8 +150,12 @@ done
 ############################
 pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy)
 for name in "${pip_progs[@]}"; do
-	PROCESSING "[ Installing $name ]"
-	pip3 install "$name"
+	if python3 -c "import $name" &>/dev/null; then
+		echo 'skipping' &>/dev/null
+	else
+		PROCESSING "[ Installing $name ]"
+		pip3 install "$name"
+	fi
 done
 
 ############################
