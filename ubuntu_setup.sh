@@ -60,11 +60,6 @@ INSTALL_CHECK() {
 				if [ $? -eq 1 ]; then
 					echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 				fi
-			# elif [[ $name == "oracle-java8-installer" ]]; then
-			# 	PROCESSING "[ Installing Oracle Java 8 ]"
-			# 	echo "" | sudo add-apt-repository ppa:webupd8team/java
-			# 	sudo apt update
-			# 	sudo apt install oracle-java8-installer -y
 			elif [[ $name == "sublime-text" ]]; then
 				PROCESSING "[ Installing Sublime Text ]" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
 				wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
@@ -82,7 +77,7 @@ INSTALL_CHECK() {
 				chmod +x "stegsolve.jar"
 			elif [[ $name == "hashcat" ]]; then
 				if [[ -x $(command -v hashcat) ]]; then
-					echo "$name is installed" &>/dev/null
+					echo "$name already installed" &>/dev/null
 				else
 					PROCESSING "[ Installing hashcat ]"
 					wget https://hashcat.net/files/hashcat-5.1.0.7z
@@ -90,6 +85,8 @@ INSTALL_CHECK() {
 					cd hashcat-5.1.0 || exit
 					cp hashcat64.bin /usr/bin/
 					ln -s /usr/bin/hashcat64.bin /usr/bin/hashcat
+					cd || exit
+					rm -rf hashcat-5.1.0
 				fi
 			elif [[ $name == "vnc_viewer.deb" ]]; then
 				PROCESSING "[ Install Real VNC Viewer ]"
