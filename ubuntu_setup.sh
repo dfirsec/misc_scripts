@@ -29,10 +29,9 @@ PROCESSING() {
 }
 
 INSTALL_CHECK() {
-	progs=("snapd software-properties-common apt-transport-https code git terminator taskwarrior python-pip3 guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle pefile xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant oracle-java8-installer ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb")
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python-pip3 guake openvpn nmap docker.io curl pinta exiftool python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle pefile xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant oracle-java8-installer ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve.jar hashcat vnc_viewer.deb)
 	for name in "${progs[@]}"; do
 		if ! [ -x "$(command -v "$name")" ]; then
-			PROCESSING "[ Installing $name ]"
 			if [[ $name == "code" ]]; then
 				PROCESSING "[ Importing the Microsoft GPG key ]"
 				wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
@@ -111,10 +110,11 @@ INSTALL_CHECK() {
 				PROCESSING "[ Installing volatility ]"
 				sudo snap install volatility-phocean
 			else
+				PROCESSING "[ Installing $name ]"
 				sudo apt install "$name" -y
 			fi
 		else
-			echo "$name already installed, skipping..."
+			echo "$name already installed, skipping..." &>/dev/null
 		fi
 	done
 }
@@ -148,7 +148,7 @@ done
 ############################
 #   pip installations
 ############################
-pip_progs=("requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy")
+pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy)
 for name in "${pip_progs[@]}"; do
 	PROCESSING "[ Installing $name ]"
 	pip3 install "$name"
