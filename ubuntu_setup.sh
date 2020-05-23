@@ -207,3 +207,4 @@ fi
 PROCESSING "[ Updating Prompt ]"
 echo "Done!"
 exec bash
+exit
