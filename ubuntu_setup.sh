@@ -92,21 +92,26 @@ INSTALL_CHECK() {
 					rm -rf hashcat-5.1.0
 				fi
 			elif [[ $name == "vnc_viewer.deb" ]]; then
-				PROCESSING "[ Install Real VNC Viewer ]"
-				wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.17.1113-Linux-x64.deb" -O vnc_viewer.deb
-				dpkg -i vnc_viewer.deb
-				rm vnc_viewer.deb
+				sudo dpkg-query -l | grep vnc &>/dev/null
+					if [ $? -eq 0 ]; then
+						echo "$name is installed" &>/dev/null
+					else
+						PROCESSING "[ Install Real VNC Viewer ]"
+						wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.17.1113-Linux-x64.deb" -O vnc_viewer.deb
+						dpkg -i vnc_viewer.deb
+						rm vnc_viewer.deb
 
-				PROCESSING "[ Install Real VNC Connect (Server) ]"
-				wget 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.2.1-Linux-x64.deb' -O vnc_server.deb
-				dpkg -i vnc_server.deb
-				rm vnc_server.deb
+						PROCESSING "[ Install Real VNC Connect (Server) ]"
+						wget 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.2.1-Linux-x64.deb' -O vnc_server.deb
+						dpkg -i vnc_server.deb
+						rm vnc_server.deb
 
-				PROCESSING "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
-				grep "vncserver-x11-serviced.service" /etc/rc.local
-				if [ $? -eq 1 ]; then
-					echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
-				fi
+						PROCESSING "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
+						grep "vncserver-x11-serviced.service" /etc/rc.local
+						if [ $? -eq 1 ]; then
+							echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
+						fi
+					fi
 			elif [[ $name == "snapd" ]]; then
 				PROCESSING "[ Installing Snap ]"
 				sudo apt install snapd -y
