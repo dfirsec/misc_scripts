@@ -11,13 +11,13 @@ PROCESSING=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
 
 ERROR() {
-	echo -e "\n${ERROR}${1}${RESET}"
+	echo -e "\n${ERROR}[ERROR] ${1}${RESET}"
 }
 SUCCESS() {
-	echo -e "\n${SUCCESS}${1}${RESET}"
+	echo -e "\n${SUCCESS}[SUCCESS] ${1}${RESET}"
 }
 WARNING() {
-	echo -e "\n${WARNING}${1}${RESET}"
+	echo -e "\n${WARNING}[WARNING] ${1}${RESET}"
 }
 PROCESSING() {
 	echo -e "\n${PROCESSING}${1}${RESET}"
@@ -188,6 +188,26 @@ else
 	PROCESSING "[ Downloading volatility3 ]"
 	git clone https://github.com/volatilityfoundation/volatility3.git
 fi
+
+
+############################
+#   ghidra installation
+############################
+ghidra_dir="/opt/ghidra"
+jdk_dir="/opt/jdk-11"
+if [[ -d $ghidra_dir ]]; then
+	WARNING "ghidra already installed here: $ghidra_dir"
+else
+	wget 'https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip' --no-hsts
+	sudo unzip -q ghidra_9.1.2_PUBLIC_20200212.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
+fi
+if [[ -d $jdk_dir ]]; then
+	WARNING "jdk-11 already installed here: $jdk_dir"
+else
+	wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
+	sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
+fi
+
 
 ############################
 #   setup paths
