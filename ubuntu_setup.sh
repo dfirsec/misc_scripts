@@ -137,12 +137,6 @@ INSTALL_CHECK() {
 	done
 }
 
-# Testing if root ]
-if [ $UID -ne 0 ]; then
-	ERROR "You must run this script as root!" && echo
-	exit
-fi
-
 PROCESSING "[ Updating repositories ]"
 UPDATE
 
