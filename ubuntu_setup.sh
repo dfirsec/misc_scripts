@@ -13,12 +13,15 @@ reset=$(tput sgr0)
 error() {
 	echo -e "\n${error}[ERROR] ${1}${reset}"
 }
+
 success() {
 	echo -e "\n${success}[SUCCESS] ${1}${reset}"
 }
+
 info() {
 	echo -e "\n${info}[INFO] ${1}${reset}"
 }
+
 processing() {
 	echo -e "\n${processing}${1}${reset}"
 }
@@ -38,10 +41,9 @@ processing "[ Forcing color prompt in ~/.bashrc ]"
 echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 
 install_check() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager openjdk-11-jre-headless ghidra volatility3)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager openjdk-11-jre-headless ghidra volatility3 hopper hexedit)
 	for name in "${progs[@]}"; do
-		dpkg -s "$name" &>/dev/null
-		if [ $? -eq 0 ]; then
+		if ! dpkg -s "$name" &>/dev/null; then
 			echo "$name is installed" &>/dev/null
 		else
 			############################
@@ -137,8 +139,7 @@ install_check() {
 			#   vnc
 			############################
 			elif [[ $name == "vnc" ]]; then
-				sudo dpkg-query -l | grep vnc &>/dev/null
-				if [ $? -eq 0 ]; then
+				if ! sudo dpkg-query -l | grep vnc &>/dev/null; then
 					echo "$name is installed" &>/dev/null
 				else
 					processing "[ Install Real VNC Viewer ]"
@@ -167,8 +168,8 @@ install_check() {
 
 				snap_progs=(spotify volatility-phocean)
 				for prog in "${snap_progs[@]}"; do
-					snap list | grep "$prog" &>/dev/null
-					if [ $? -eq 0 ]; then
+					# snap list | grep "$prog" &>/dev/null
+					if ! snap list | grep "$prog"; then
 						echo 'skipping' &>/dev/null
 					else
 						processing "[ Installing Spotify ]"
@@ -211,6 +212,31 @@ install_check() {
 				fi
 
 			############################
+			#   burpsuite
+			############################
+			# elif [[ $name == "burpsuite" ]]; then
+			# 	burp_dir="$HOME/burpsuite"
+			# 	if [[ -d $burp_dir ]]; then
+			# 		echo 'skipping' &>/dev/null
+			# 	else
+			# 		processing "[ Downloading volatility3 ]"
+			# 		wget 'https://portswigger.net/burp/releases/download'
+			# 	fi
+
+			############################
+			#   hopperv4
+			############################
+			elif [[ $name == "hopper" ]]; then
+				if [[ -x $(command -v hopper) ]]; then
+					echo 'skipping' &>/dev/null
+				else
+					processing "[ Downloading Hopperv4 ]"
+					wget "https://d2ap6ypl1xbe4k.cloudfront.net/Hopper-v4-4.5.28-Linux.deb"
+					sudo dpkg -i Hopper-v4-4.5.28-Linux.deb
+					rm Hopper-v4-4.5.28-Linux.deb
+				fi
+
+			############################
 			#   process all others
 			############################
 			else
@@ -225,8 +251,8 @@ install_check() {
 pip_installs() {
 	pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy pefile)
 	for name in "${pip_progs[@]}"; do
-		python3 -c "import $name" &>/dev/null
-		if [ $? -eq 0 ]; then
+		# python3 -c "import $name" &>/dev/null
+		if ! python3 -c "import $name"; then
 			echo 'skipping' &>/dev/null
 		else
 			processing "[ Installing $name ]"
