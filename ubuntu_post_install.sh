@@ -41,7 +41,7 @@ processing "[ Forcing color prompt in ~/.bashrc ]"
 echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 
 install_check() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager openjdk-11-jre-headless ghidra volatility3 hopper hexedit)
+	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager ghidra volatility3 hopper hexedit sqlmap openjdk-13-jre openjdk-13-jdk)
 	for name in "${progs[@]}"; do
 		if ! dpkg -s "$name" &>/dev/null; then
 			echo "$name is installed" &>/dev/null
@@ -75,17 +75,6 @@ install_check() {
 				sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
 				sudo apt update
 				sudo apt install atom -y
-
-			############################
-			#   xclip
-			############################
-			elif [[ $name == "xclip" ]]; then
-				processing "[ Installing xclip ]"
-				sudo apt install -y xclip
-				grep "alias xclip" ~/.bashrc
-				if [ $? -eq 1 ]; then
-					echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
-				fi
 
 			############################
 			#   sublime
@@ -153,8 +142,7 @@ install_check() {
 					rm vnc_server.deb
 
 					processing "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
-					grep "vncserver-x11-serviced.service" /etc/rc.local
-					if [ $? -eq 1 ]; then
+					if ! grep "vncserver-x11-serviced.service" /etc/rc.local; then
 						echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
 					fi
 				fi
@@ -185,30 +173,32 @@ install_check() {
 			############################
 			elif [[ $name == "ghidra" ]]; then
 				ghidra_dir="/opt/ghidra"
-				jdk_dir="/opt/jdk-11"
 				if [[ -d $ghidra_dir ]]; then
 					info "ghidra already installed here: $ghidra_dir"
 				else
 					wget 'https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip' --no-hsts
 					sudo unzip -q ghidra_9.1.2_PUBLIC_20200212.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
+					rm ghidra_*.zip
 				fi
-				if [[ -d $jdk_dir ]]; then
-					info "jdk-11 already installed here: $jdk_dir"
-				else
-					wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
-					sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
-				fi
+				# jdk_dir="/opt/jdk-11"
+				# if [[ -d $jdk_dir ]]; then
+				# 	info "jdk-11 already installed here: $jdk_dir"
+				# else
+				# 	wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
+				# 	sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
+				# 	rm OpenJDK11U*.tar.gz
+				# fi
 
 			############################
 			#   volatility3
 			############################
 			elif [[ $name == "volatility3" ]]; then
-				vol_dir="$HOME/volatility3"
+				vol_dir="opt/volatility3"
 				if [[ -d $vol_dir ]]; then
 					echo 'skipping' &>/dev/null
 				else
 					processing "[ Downloading volatility3 ]"
-					git clone https://github.com/volatilityfoundation/volatility3.git
+					sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3
 				fi
 
 			############################
@@ -234,6 +224,18 @@ install_check() {
 					wget "https://d2ap6ypl1xbe4k.cloudfront.net/Hopper-v4-4.5.28-Linux.deb"
 					sudo dpkg -i Hopper-v4-4.5.28-Linux.deb
 					rm Hopper-v4-4.5.28-Linux.deb
+				fi
+
+			############################
+			#   sqlmap
+			############################
+			elif [[ $name == "sqlmap" ]]; then
+				sqlmap_dir="opt/sqlmap"
+				if [[ -d $sqlmap_dir ]]; then
+					echo 'skipping' &>/dev/null
+				else
+					processing "[ Downloading sqlmap ]"
+					sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap
 				fi
 
 			############################
@@ -264,14 +266,32 @@ pip_installs() {
 # setup paths
 setup_paths() {
 	processing "[ Adding GOPATH and GOBIN to .bashrc ]"
-	grep "export GOPATH" ~/.bashrc
-	if [ $? -eq 1 ]; then
+	if ! grep "export GOPATH" ~/.bashrc; then
 		echo "export GOPATH=\$HOME/.go/" >>~/.bashrc
 	fi
-	grep "export GOBIN" ~/.bashrc
-	if [ $? -eq 1 ]; then
+	if ! grep "export GOBIN" ~/.bashrc; then
 		echo "export GOBIN=\$HOME/.go/bin" >>~/.bashrc
 		echo "export PATH=\$PATH:\$GOBIN" >>~/.bashrc
+	fi
+	processing "[ Adding sqlmap to .bashrc ]"
+	if ! grep "sqlmap"; then
+		echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
+	fi
+	processing "[ Adding ghidra to .bashrc ]"
+	if ! grep "ghidra"; then
+		echo "alias ghidra='/opt/ghidra/ghidraRun'" >>~/.bashrc
+	fi
+	# processing "[ Adding openjdk to .bashrc ]"
+	# if ! grep "jdk"; then
+	# 	echo "export PATH=/opt/jdk-11/bin:$PATH" >>~/.bashrc
+	# fi
+	processing "[ Adding volatility3 to .bashrc ]"
+	if ! grep "vol3"; then
+		echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
+	fi
+	processing "[ Adding xclip to .bashrc ]"
+	if ! grep "xclip"; then
+		echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 	fi
 }
 
