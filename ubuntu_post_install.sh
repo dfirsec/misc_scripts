@@ -35,86 +35,86 @@ fi
 update_sys() {
 	sudo apt update
 	sudo apt upgrade -y
+	sudo apt autoremove -y
 }
 
-processing "[ Forcing color prompt in ~/.bashrc ]"
-echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
-
 install_check() {
-	progs=(snapd software-properties-common apt-transport-https code git terminator taskwarrior python3-pip build-essential libssl-dev libffi-dev python3-dev guake openvpn nmap docker.io curl pinta libimage-exiftool-perl python-pil sqlitebrowser wireshark binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go gccgo-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl sublime-text simplescreenrecorder stegsolve hashcat vnc gobuster font-manager ghidra volatility3 hopper hexedit sqlmap openjdk-13-jre openjdk-13-jdk)
-	for name in "${progs[@]}"; do
-		if ! dpkg -s "$name" &>/dev/null; then
-			echo "$name is installed" &>/dev/null
-		else
+	reqpkgs=(python3-pip python3-flask python3-scapy libncurses5 software-properties-common apt-transport-https git terminator taskwarrior build-essential libssl-dev libffi-dev guake openvpn nmap curl pinta libimage-exiftool-perl sqlitebrowser binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl kazam gobuster font-manager hexedit openjdk-13-jre openjdk-13-jdk)
+
+	sudo apt install -y "${reqpkgs[@]}"
+
+	optpkgs=(code docker atom sublime ghidra volatility3 hopper stegsolve vnc hashcat snapd sqlmap burpsuite wireshark)
+
+	for pkg in "${optpkgs[@]}"; do
+		if ! sudo dpkg -s "$pkg" &>/dev/null; then
+			############################
+			#   wireshark
+			############################
+			if [[ $pkg == "wireshark" ]]; then
+				processing "[+] Installing wireshark"
+				sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark >/dev/null && echo "Successfully installed $pkg"
+				unset DEBIAN_FRONTEND
+			fi
 			############################
 			#   vscode
 			############################
-			if [[ $name == "code" ]]; then
-				processing "[ Importing the Microsoft GPG key ]"
+			if [[ $pkg == "code" ]]; then
+				processing "[+] Importing the Microsoft GPG key"
 				wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-				processing "[ Enabling the Visual Studio Code repository and install ]"
+				processing "[+] Enabling the Visual Studio Code repository and install"
 				sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
 				sudo apt update
-				sudo apt install code -y
-
+				sudo apt install code -y >/dev/null && echo "Successfully installed $pkg"
+			fi
 			############################
 			#   docker
 			############################
-			elif [[ $name == "docker.io" ]]; then
-				processing "[ Installing Docker ]"
-				sudo apt install docker.io -y
+			if [[ $pkg == "docker" ]]; then
+				processing "[+] Installing Docker"
+				sudo apt install docker.io -y >/dev/null && echo "Successfully installed $pkg"
 				sudo groupadd docker
-				sudo usermod -aG docker "$(logname)"
-
+				sudo usermod -aG docker "$(logpkg)"
+			fi
 			############################
 			#   atom
 			############################
-			elif [[ $name == "atom" ]]; then
-				processing "[ Installing Atom ]"
+			if [[ $pkg == "atom" ]]; then
+				processing "[+] Installing Atom"
 				wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
 				sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
 				sudo apt update
-				sudo apt install atom -y
-
+				sudo apt install atom -y >/dev/null && echo "Successfully installed $pkg"
+			fi
 			############################
 			#   sublime
 			############################
-			elif [[ $name == "sublime-text" ]]; then
-				processing "[ Installing Sublime Text ]" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
+			if [[ $pkg == "sublime-text" ]]; then
+				processing "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
 				wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
 				echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
 				sudo apt update
-				sudo apt install sublime-text -y
-
-			############################
-			#  simplescreenrecorder
-			############################
-			elif [[ $name == "simplescreenrecorder" ]]; then
-				processing "[ Installing SimpleScreenRecorder ]"
-				echo "" | sudo add-apt-repository ppa:maarten-baert/simplescreenrecorder
-				sudo apt update
-				sudo apt install simplescreenrecorder -y
-
+				sudo apt install sublime-text -y >/dev/null && echo "Successfully installed $pkg"
+			fi
 			############################
 			#  stegsolve
 			############################
-			elif [[ $name == "stegsolve" ]]; then
+			if [[ $pkg == "stegsolve" ]]; then
 				if [ -f "stegsolve.jar" ]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[ Downloading stegsolve.jar ]"
+					processing "[+] Downloading stegsolve.jar"
 					wget "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
 					chmod +x "stegsolve.jar"
 				fi
-
+			fi
 			############################
 			#   hashcat
 			############################
-			elif [[ $name == "hashcat" ]]; then
+			if [[ $pkg == "hashcat" ]]; then
 				if [[ -x $(command -v hashcat) ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[ Installing hashcat ]"
+					processing "[+] Installing hashcat"
 					wget https://hashcat.net/files/hashcat-5.1.0.7z
 					p7zip -d hashcat-5.1.0.7z
 					cd hashcat-5.1.0 || exit
@@ -123,55 +123,61 @@ install_check() {
 					cd || exit
 					rm -rf hashcat-5.1.0
 				fi
-
+			fi
 			############################
 			#   vnc
 			############################
-			elif [[ $name == "vnc" ]]; then
+			if [[ $pkg == "vnc" ]]; then
 				if ! sudo dpkg-query -l | grep vnc &>/dev/null; then
-					echo "$name is installed" &>/dev/null
+					echo "$pkg is installed" &>/dev/null
 				else
-					processing "[ Install Real VNC Viewer ]"
+					processing "[+] Install Real VNC Viewer"
 					wget "https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb" -O vnc_viewer.deb
-					dpkg -i vnc_viewer.deb
+					dpkg -i vnc_viewer.deb >/dev/null && echo "Successfully installed $pkg"
 					rm vnc_viewer.deb
 
-					processing "[ Install Real VNC Connect (Server) ]"
+					processing "[+] Install Real VNC Connect (Server)"
 					wget 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
-					dpkg -i vnc_server.deb
+					dpkg -i vnc_server.deb >/dev/null && echo "Successfully installed $pkg"
 					rm vnc_server.deb
 
-					processing "[ Adding VNC Connect (Server) service to the default startup /etc/rc.local ]"
-					if ! grep "vncserver-x11-serviced.service" /etc/rc.local; then
-						echo "systemctl start vncserver-x11-serviced.service" >>~/etc/rc.local
+					processing "[+] Adding VNC Connect (Server) service to the default startup"
+					if ! systemctl is-active --quiet vncserver-x11-serviced; then
+						sudo /etc/init.d/vncserver-x11-serviced start
+						sudo update-rc.d vncserver-x11-serviced defaults
 					fi
 				fi
-
+			fi
 			############################
 			#   snapd
 			############################
-			elif [[ $name == "snapd" ]]; then
-				processing "[ Installing Snap ]"
-				sudo apt install snapd -y
+			if [[ $pkg == "snapd" ]]; then
+				processing "[+] Installing Snap"
+				sudo apt install snapd -y >/dev/null && echo "Successfully installed $pkg"
 
-				snap_progs=(spotify volatility-phocean)
-				for prog in "${snap_progs[@]}"; do
-					# snap list | grep "$prog" &>/dev/null
-					if ! snap list | grep "$prog"; then
-						echo 'skipping' &>/dev/null
-					else
-						processing "[ Installing Spotify ]"
-						sudo snap install spotify
-
-						processing "[ Installing volatility ]"
-						sudo snap install volatility-phocean
-					fi
+				snap_pkgs=(spotify volatility-phocean)
+				for snap in "${snap_pkgs[@]}"; do
+					processing "[+] Installing $snap"
 				done
+				sudo snap install "${snap_pkgs[@]}"
 
+				# for snap in "${snap_pkgs[@]}"; do
+				# 	# snap list | grep "$prog" &>/dev/null
+				# 	if ! snap list | grep "$snap"; then
+				# 		echo 'skipping' &>/dev/null
+				# 	else
+				# 		processing "[+] Installing Spotify"
+				# 		sudo snap install spotify && echo "Successfully installed $snap"
+
+				# 		processing "[+] Installing volatility"
+				# 		sudo snap install volatility-phocean && echo "Successfully installed $snap"
+				# 	fi
+				# done
+			fi
 			############################
 			#   ghidra
 			############################
-			elif [[ $name == "ghidra" ]]; then
+			if [[ $pkg == "ghidra" ]]; then
 				ghidra_dir="/opt/ghidra"
 				if [[ -d $ghidra_dir ]]; then
 					info "ghidra already installed here: $ghidra_dir"
@@ -188,139 +194,141 @@ install_check() {
 				# 	sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
 				# 	rm OpenJDK11U*.tar.gz
 				# fi
-
+			fi
 			############################
 			#   volatility3
 			############################
-			elif [[ $name == "volatility3" ]]; then
+			if [[ $pkg == "volatility3" ]]; then
 				vol_dir="opt/volatility3"
 				if [[ -d $vol_dir ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[ Downloading volatility3 ]"
+					processing "[+] Downloading volatility3"
 					sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3
 				fi
-
-			############################
-			#   burpsuite
-			############################
-			# elif [[ $name == "burpsuite" ]]; then
-			# 	burp_dir="$HOME/burpsuite"
-			# 	if [[ -d $burp_dir ]]; then
-			# 		echo 'skipping' &>/dev/null
-			# 	else
-			# 		processing "[ Downloading volatility3 ]"
-			# 		wget 'https://portswigger.net/burp/releases/download'
-			# 	fi
+			fi
+		############################
+		#   burpsuite
+		############################
+		elif [[ $pkg == "burpsuite" ]]; then
+			burp_dir="$HOME/burpsuite"
+			if [[ -d $burp_dir ]]; then
+				echo 'skipping' &>/dev/null
+			else
+				processing "[+] Downloading volatility3"
+				wget 'https://portswigger.net/burp/releases/download'
+			fi
 
 			############################
 			#   hopperv4
 			############################
-			elif [[ $name == "hopper" ]]; then
+			if [[ $pkg == "hopper" ]]; then
 				if [[ -x $(command -v hopper) ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[ Downloading Hopperv4 ]"
+					processing "[+] Downloading Hopperv4"
 					wget "https://d2ap6ypl1xbe4k.cloudfront.net/Hopper-v4-4.5.28-Linux.deb"
 					sudo dpkg -i Hopper-v4-4.5.28-Linux.deb
 					rm Hopper-v4-4.5.28-Linux.deb
 				fi
-
+			fi
 			############################
 			#   sqlmap
 			############################
-			elif [[ $name == "sqlmap" ]]; then
+			if [[ $pkg == "sqlmap" ]]; then
 				sqlmap_dir="opt/sqlmap"
 				if [[ -d $sqlmap_dir ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[ Downloading sqlmap ]"
+					processing "[+] Downloading sqlmap"
 					sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap
 				fi
-
-			############################
-			#   process all others
-			############################
-			else
-				processing "[ Installing $name ]"
-				sudo apt install "$name" -y
 			fi
-		fi
-	done
-}
-
-#  pip installations
-pip_installs() {
-	pip_progs=(requests flask flask-login colorama passlib pwntools netifaces iptools pyopenssl pydispatch scapy pefile)
-	for name in "${pip_progs[@]}"; do
-		# python3 -c "import $name" &>/dev/null
-		if ! python3 -c "import $name"; then
-			echo 'skipping' &>/dev/null
 		else
-			processing "[ Installing $name ]"
-			pip3 install "$name"
+			info "$pkg is already installed"
 		fi
 	done
 }
 
 # setup paths
 setup_paths() {
-	processing "[ Adding GOPATH and GOBIN to .bashrc ]"
-	if ! grep "export GOPATH" ~/.bashrc; then
-		echo "export GOPATH=\$HOME/.go/" >>~/.bashrc
+	processing "[+] Forcing color prompt in ~/.bashrc"
+	if ! grep "export PS1" ~/.bashrc; then
+		echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 	fi
-	if ! grep "export GOBIN" ~/.bashrc; then
-		echo "export GOBIN=\$HOME/.go/bin" >>~/.bashrc
-		echo "export PATH=\$PATH:\$GOBIN" >>~/.bashrc
-	fi
-	processing "[ Adding sqlmap to .bashrc ]"
-	if ! grep "sqlmap"; then
+	processing "[+] Adding sqlmap to .bashrc"
+	if ! grep "sqlmap" ~/.bashrc; then
 		echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
 	fi
-	processing "[ Adding ghidra to .bashrc ]"
-	if ! grep "ghidra"; then
+	processing "[+] Adding ghidra to .bashrc"
+	if ! grep "ghidra" ~/.bashrc; then
 		echo "alias ghidra='/opt/ghidra/ghidraRun'" >>~/.bashrc
 	fi
-	# processing "[ Adding openjdk to .bashrc ]"
-	# if ! grep "jdk"; then
+	# processing "[+] Adding openjdk to .bashrc"
+	# if ! grep "jdk" ~/.bashrc; then
 	# 	echo "export PATH=/opt/jdk-11/bin:$PATH" >>~/.bashrc
 	# fi
-	processing "[ Adding volatility3 to .bashrc ]"
-	if ! grep "vol3"; then
+	processing "[+] Adding volatility3 to .bashrc"
+	if ! grep "vol3" ~/.bashrc; then
 		echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
 	fi
-	processing "[ Adding xclip to .bashrc ]"
-	if ! grep "xclip"; then
+	processing "[+] Adding xclip to .bashrc"
+	if ! grep "xclip" ~/.bashrc; then
 		echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 	fi
+}
+
+#  pip installations
+py_mods() {
+	modules=(requests mako colorama passlib pwntools netifaces iptools pyopenssl pydispatch pefile Pillow)
+	if grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc
+	then
+		echo "path exists" &>/dev/null
+	else
+		echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
+	fi
+	processing "[+] Installing Python modules"
+	sudo python3 -m pip install --upgrade pip
+	sudo python3 -m pip install --upgrade "${modules[@]}"
+
 }
 
 # remove boilerplate directories
 remove_dirs() {
 	bp_dirs=("$HOME/Desktop $HOME/Documents $HOME/Downloads $HOME/Music $HOME/Pictures $HOME/Public $HOME/Templates $HOME/Videos")
-	for name in "${bp_dirs[@]}"; do
-		if [ -d "$name" ]; then
-			processing "[ Removing boilerplate home directories ]"
-			rmdir "$name"
+	for pkg in "${bp_dirs[@]}"; do
+		if [ -d "$pkg" ]; then
+			processing "[+] Removing boilerplate home directories"
+			rmdir "$pkg"
 		fi
 	done
 }
 
-processing "[ Updating repositories ]"
-update_sys
+processing "[+] Updating repositories"
+update_sys 2>errors.txt
 
-processing "[ Checking Installed Software ]"
-install_check
+processing "[+] Checking Installed Software"
+install_check 2>errors.txt
 
-processing "[ Installing Python Modules ]"
-pip_installs
+processing "[+] Setting up Paths"
+setup_paths 2>errors.txt
 
-processing "[ Setting terminator as the default terminal emulator ]"
-sed -i s/Exec=gnome-terminal/Exec=terminator/g /usr/share/applications/gnome-terminal.desktop
+processing "[+] Installing Python Modules"
+py_mods 2>errors.txt
 
-processing "[ Setting up Paths ]"
-setup_paths
+if echo "$XDG_CURRENT_DESKTOP" | grep XFCE &>/dev/null; then
+	processing "[+] Setting terminator as the default terminal emulator"
+	curr_term=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
+	sudo mv /usr/bin/"$curr_term" /usr/bin/"$curr_term".bak
+	sudo ln -s /usr/bin/terminator /usr/bin/"$curr_term"
+fi
 
-processing "[ Updating Prompt ]"
+processing "[+] Updating Prompt"
 echo "Done!"
+if [ -s "install_errors.txt" ]; then
+	echo "No errors encountered"
+else
+	echo "Check install_errors.txt log file"
+fi
+
 exec bash
