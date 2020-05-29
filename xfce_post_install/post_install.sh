@@ -39,13 +39,79 @@ update_sys() {
 }
 
 install_check() {
-	reqpkgs=(python3-pip python3-flask python3-scapy libncurses5 software-properties-common apt-transport-https git terminator taskwarrior build-essential libssl-dev libffi-dev guake openvpn nmap curl pinta libimage-exiftool-perl sqlitebrowser binwalk tesseract-ocr foremost idle xclip bsdgames hexedit golang-go sqlite nikto sqlite nikto zbar-tools qrencode pdfcrack virtualbox-qt vagrant ffmpeg fcrackzip unrar p7zip steghide gimp cmake mplayer sshpass tcpflow libcompress-raw-lzma-perl kazam gobuster font-manager hexedit openjdk-13-jre openjdk-13-jdk)
+	REQPKGS=(
+		apt-transport-https
+		binwalk
+		bsdgames
+		build-essential
+		cmake
+		curl
+		fcrackzip
+		ffmpeg
+		font-manager
+		foremost
+		gimp
+		git terminator
+		golang-go
+		guake
+		hexedit
+		hexedit
+		idle
+		kazam gobuster
+		libcompress-raw-lzma-perl
+		libffi-dev
+		libimage-exiftool-perl
+		libncurses5
+		libssl-dev
+		mplayer
+		nikto
+		nmap
+		openjdk-13-jdk
+		openjdk-13-jre
+		openvpn
+		p7zip
+		pdfcrack
+		pinta
+		python3-flask
+		python3-pip
+		python3-scapy
+		qrencode
+		software-properties-common
+		sqlite
+		sqlite
+		sqlitebrowser
+		sshpass
+		steghide
+		taskwarrior
+		tcpflow
+		tesseract-ocr
+		unrar
+		vagrant
+		virtualbox-qt
+		xclip
+		zbar-tools
+	)
 
-	sudo apt install -y "${reqpkgs[@]}"
+	sudo apt install -y "${REQPKGS[@]}"
 
-	optpkgs=(code docker atom sublime ghidra volatility3 hopper stegsolve vnc hashcat snapd sqlmap burpsuite wireshark)
+	OPTPKGS=(
+		atom
+		burpsuite
+		code
+		docker
+		ghidra
+		hashcat
+		hopper
+		snapd
+		sqlmap
+		stegsolve
+		sublime
+		vnc
+		volatility3
+		wireshark
+	)
 
-	for pkg in "${optpkgs[@]}"; do
+	for pkg in "${OPTPKGS[@]}"; do
 		if ! sudo dpkg -s "$pkg" &>/dev/null; then
 			############################
 			#   wireshark
@@ -55,6 +121,7 @@ install_check() {
 				sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark >/dev/null && echo "Successfully installed $pkg"
 				unset DEBIAN_FRONTEND
 			fi
+
 			############################
 			#   vscode
 			############################
@@ -66,6 +133,7 @@ install_check() {
 				sudo apt update
 				sudo apt install code -y >/dev/null && echo "Successfully installed $pkg"
 			fi
+
 			############################
 			#   docker
 			############################
@@ -75,6 +143,7 @@ install_check() {
 				sudo groupadd docker
 				sudo usermod -aG docker "$(logpkg)"
 			fi
+
 			############################
 			#   atom
 			############################
@@ -85,6 +154,7 @@ install_check() {
 				sudo apt update
 				sudo apt install atom -y >/dev/null && echo "Successfully installed $pkg"
 			fi
+
 			############################
 			#   sublime
 			############################
@@ -95,6 +165,7 @@ install_check() {
 				sudo apt update
 				sudo apt install sublime-text -y >/dev/null && echo "Successfully installed $pkg"
 			fi
+
 			############################
 			#  stegsolve
 			############################
@@ -107,6 +178,7 @@ install_check() {
 					chmod +x "stegsolve.jar"
 				fi
 			fi
+
 			############################
 			#   hashcat
 			############################
@@ -124,6 +196,7 @@ install_check() {
 					rm -rf hashcat-5.1.0
 				fi
 			fi
+
 			############################
 			#   vnc
 			############################
@@ -148,6 +221,7 @@ install_check() {
 					fi
 				fi
 			fi
+
 			############################
 			#   snapd
 			############################
@@ -155,25 +229,13 @@ install_check() {
 				processing "[+] Installing Snap"
 				sudo apt install snapd -y >/dev/null && echo "Successfully installed $pkg"
 
-				snap_pkgs=(spotify volatility-phocean)
-				for snap in "${snap_pkgs[@]}"; do
+				SNAPPKGS=(spotify volatility-phocean)
+				for snap in "${SNAPPKGS[@]}"; do
 					processing "[+] Installing $snap"
 				done
-				sudo snap install "${snap_pkgs[@]}"
-
-				# for snap in "${snap_pkgs[@]}"; do
-				# 	# snap list | grep "$prog" &>/dev/null
-				# 	if ! snap list | grep "$snap"; then
-				# 		echo 'skipping' &>/dev/null
-				# 	else
-				# 		processing "[+] Installing Spotify"
-				# 		sudo snap install spotify && echo "Successfully installed $snap"
-
-				# 		processing "[+] Installing volatility"
-				# 		sudo snap install volatility-phocean && echo "Successfully installed $snap"
-				# 	fi
-				# done
+				sudo snap install "${SNAPPKGS[@]}"
 			fi
+
 			############################
 			#   ghidra
 			############################
@@ -195,6 +257,7 @@ install_check() {
 				# 	rm OpenJDK11U*.tar.gz
 				# fi
 			fi
+
 			############################
 			#   volatility3
 			############################
@@ -207,16 +270,18 @@ install_check() {
 					sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3
 				fi
 			fi
-		############################
-		#   burpsuite
-		############################
-		elif [[ $pkg == "burpsuite" ]]; then
-			burp_dir="$HOME/burpsuite"
-			if [[ -d $burp_dir ]]; then
-				echo 'skipping' &>/dev/null
-			else
-				processing "[+] Downloading volatility3"
-				wget 'https://portswigger.net/burp/releases/download'
+
+			############################
+			#   burpsuite
+			############################
+			if [[ $pkg == "burpsuite" ]]; then
+				burp_dir="$HOME/burpsuite"
+				if [[ -d $burp_dir ]]; then
+					echo 'skipping' &>/dev/null
+				else
+					processing "[+] Downloading volatility3"
+					wget 'https://portswigger.net/burp/releases/download'
+				fi
 			fi
 
 			############################
@@ -232,6 +297,7 @@ install_check() {
 					rm Hopper-v4-4.5.28-Linux.deb
 				fi
 			fi
+
 			############################
 			#   sqlmap
 			############################
@@ -281,8 +347,7 @@ setup_paths() {
 #  pip installations
 py_mods() {
 	modules=(requests mako colorama passlib pwntools netifaces iptools pyopenssl pydispatch pefile Pillow)
-	if grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc
-	then
+	if grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
 		echo "path exists" &>/dev/null
 	else
 		echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
