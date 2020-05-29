@@ -305,16 +305,16 @@ remove_dirs() {
 }
 
 processing "[+] Updating repositories"
-update_sys 2>errors.txt
+update_sys 2>install_errors.txt
 
 processing "[+] Checking Installed Software"
-install_check 2>errors.txt
+install_check 2>install_errors.txt
 
 processing "[+] Setting up Paths"
-setup_paths 2>errors.txt
+setup_paths 2>install_errors.txt
 
 processing "[+] Installing Python Modules"
-py_mods 2>errors.txt
+py_mods 2>install_errors.txt
 
 if echo "$XDG_CURRENT_DESKTOP" | grep XFCE &>/dev/null; then
 	processing "[+] Setting terminator as the default terminal emulator"
@@ -323,12 +323,12 @@ if echo "$XDG_CURRENT_DESKTOP" | grep XFCE &>/dev/null; then
 	sudo ln -s /usr/bin/terminator /usr/bin/"$curr_term"
 fi
 
-processing "[+] Updating Prompt"
+processing "[+] Updating bash prompt"
 echo "Done!"
 if [ -s "install_errors.txt" ]; then
-	echo "No errors encountered"
+	error "see install_errors.txt"
 else
-	echo "Check install_errors.txt log file"
+	success "No errors encountered"
 fi
 
 exec bash
