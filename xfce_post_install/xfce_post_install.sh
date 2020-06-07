@@ -92,10 +92,10 @@ install_pgks() {
 		qrencode
 		software-properties-common
 		sqlite
-		sqlite
 		sqlitebrowser
 		sshpass
 		steghide
+		stegsnow
 		taskwarrior
 		tcpflow
 		tesseract-ocr
