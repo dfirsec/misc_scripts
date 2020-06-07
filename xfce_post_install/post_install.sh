@@ -322,7 +322,7 @@ install_pgks() {
 				GHIDRA_DIR="/opt/ghidra"
 				GHIDRA_ICON='https://git.io/JfMiE'
 				GHIDRA_DESKTOP='https://git.io/JfMiz'
-				GHIDRA_VER=$(wget -O - --quiet https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
+				GHIDRA_VER=$(wget -O - -q https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
 				if [[ -d $GHIDRA_DIR ]]; then
 					INFO "ghidra already installed here: $GHIDRA_DIR"
 				else
@@ -334,9 +334,10 @@ install_pgks() {
 						sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra >/dev/null
 						rm ghidra_*.zip
 						sudo ln -s $GHIDRA_DIR/ghidraRun /usr/local/bin/ghidra
-						mv ghidra.png $GHIDRA_DIR/support/ghidra.png
-						mv ghidra.desktop "$HOME"/ghidra.desktop
-    					chown "$USER":"$USER" "$HOME"/ghidra.desktop
+						sudo mv ghidra.png $GHIDRA_DIR/support/ghidra.png
+						mv ghidra.desktop "$HOME"/Desktop/ghidra.desktop
+						chmod +x "$HOME"/Desktop/ghidra.desktop
+    					chown "$USER":"$USER" "$HOME"/Desktop/ghidra.desktop
 						sleep .05
 					done
 					echo
