@@ -69,6 +69,7 @@ install_pgks() {
 		hashcat
 		hexedit
 		idle
+		imagemagick
 		kazam gobuster
 		libcompress-raw-lzma-perl
 		libffi-dev
@@ -318,14 +319,16 @@ install_pgks() {
 			############################
 			if [[ $pkg == "ghidra" ]]; then
 				ghidra_dir="/opt/ghidra"
+				ghidra_ver=$(wget -O - --quiet https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
 				if [[ -d $ghidra_dir ]]; then
 					info "ghidra already installed here: $ghidra_dir"
 				else
 					for x in {1..100}; do
 						prog_bar "$x"
-						wget -q 'https://ghidra-sre.org/ghidra_9.1.2_PUBLIC_20200212.zip' --no-hsts
-						sudo unzip -q ghidra_9.1.2_PUBLIC_20200212.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra >/dev/null
+						wget -c -q 'https://ghidra-sre.org/$ghidra_ver' --no-hsts
+						sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra >/dev/null
 						rm ghidra_*.zip
+						sudo ln -s $ghidra_dir/ghidraRun /usr/local/bin/ghidra
 						sleep .05
 					done
 					echo
