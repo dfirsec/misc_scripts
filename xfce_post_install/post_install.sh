@@ -4,26 +4,26 @@
 # https://github.com/JohnHammond/ignition_key/blob/master/ignition_key.sh
 
 # Define colors ]
-error=$(tput bold && tput setaf 1)
-success=$(tput bold && tput setaf 2)
-info=$(tput bold && tput setaf 3)
-processing=$(tput bold && tput setaf 6)
+ERROR=$(tput bold && tput setaf 1)
+SUCCESS=$(tput bold && tput setaf 2)
+INFO=$(tput bold && tput setaf 3)
+PROCESSING=$(tput bold && tput setaf 6)
 reset=$(tput sgr0)
 
-error() {
-	echo -e "\n${error}[ERROR] ${1}${reset}"
+ERROR() {
+	echo -e "\n${ERROR}[ERROR] ${1}${reset}"
 }
 
-success() {
-	echo -e "\n${success}[SUCCESS] ${1}${reset}"
+SUCCESS() {
+	echo -e "\n${SUCCESS}[SUCCESS] ${1}${reset}"
 }
 
-info() {
-	echo -e "\n${info}[INFO] ${1}${reset}"
+INFO() {
+	echo -e "\n${INFO}[INFO] ${1}${reset}"
 }
 
-processing() {
-	echo -e "\n${processing}${1}${reset}"
+PROCESSING() {
+	echo -e "\n${PROCESSING}${1}${reset}"
 }
 
 # progress bar
@@ -40,7 +40,7 @@ prog_bar() {
 
 # check if ran as sudo
 if [ "$EUID" -eq 0 ]; then
-	error "Please do not run as root" && echo
+	ERROR "Please do not run as root" && echo
 	exit
 fi
 
@@ -70,7 +70,8 @@ install_pgks() {
 		hexedit
 		idle
 		imagemagick
-		kazam gobuster
+		kazam 
+		gobuster
 		libcompress-raw-lzma-perl
 		libffi-dev
 		libimage-exiftool-perl
@@ -108,7 +109,7 @@ install_pgks() {
 
 	for req in "${REQPKGS[@]}"; do
 		if ! sudo dpkg-query -l | grep -w "$req" &>/dev/null; then
-			processing "$req"
+			PROCESSING "$req"
 			for x in {1..100}; do
 				prog_bar "$x"
 				sudo apt install -y "$req" >/dev/null
@@ -141,7 +142,7 @@ install_pgks() {
 			#   wireshark
 			############################
 			if [[ $pkg == "wireshark" ]]; then
-				processing "[+] Installing wireshark"
+				PROCESSING "[+] Installing wireshark"
 				for x in {1..100}; do
 					prog_bar "$x"
 					sudo add-apt-repository ppa:wireshark-dev/stable >/dev/null
@@ -157,9 +158,9 @@ install_pgks() {
 			#   vscode
 			############################
 			if [[ $pkg == "code" ]]; then
-				processing "[+] Importing the Microsoft GPG key"
+				PROCESSING "[+] Importing the Microsoft GPG key"
 				wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-				processing "[+] Enabling the Visual Studio Code repository and install"
+				PROCESSING "[+] Enabling the Visual Studio Code repository and install"
 				sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" >/dev/null
 				for x in {1..100}; do
 					prog_bar "$x"
@@ -174,7 +175,7 @@ install_pgks() {
 			#   docker
 			############################
 			if [[ $pkg == "docker" ]]; then
-				processing "[+] Installing Docker"
+				PROCESSING "[+] Installing Docker"
 				for x in {1..100}; do
 					prog_bar "$x"
 					sudo apt install docker.io -y >/dev/null
@@ -189,7 +190,7 @@ install_pgks() {
 			#   atom
 			############################
 			if [[ $pkg == "atom" ]]; then
-				processing "[+] Installing Atom"
+				PROCESSING "[+] Installing Atom"
 				for x in {1..100}; do
 					prog_bar "$x"
 					wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
@@ -205,7 +206,7 @@ install_pgks() {
 			#   sublime
 			############################
 			if [[ $pkg == "sublime-text" ]]; then
-				processing "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
+				PROCESSING "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
 				for x in {1..100}; do
 					prog_bar "$x"
 					wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
@@ -224,7 +225,7 @@ install_pgks() {
 				if [ -f "stegsolve.jar" ]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[+] Downloading stegsolve.jar"
+					PROCESSING "[+] Downloading stegsolve.jar"
 					for x in {1..100}; do
 						prog_bar "$x"
 						wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
@@ -242,7 +243,7 @@ install_pgks() {
 			# 	if [[ -x $(command -v hashcat) ]]; then
 			# 		echo 'skipping' &>/dev/null
 			# 	else
-			# 		processing "[+] Installing hashcat"
+			# 		PROCESSING "[+] Installing hashcat"
 			# 		wget -q https://hashcat.net/files/hashcat-5.1.0.7z
 			# 		p7zip -d hashcat-5.1.0.7z
 			# 		cd hashcat-5.1.0 || exit
@@ -260,7 +261,7 @@ install_pgks() {
 				if ! sudo dpkg-query -l | grep realvnc &>/dev/null; then
 					echo "$pkg is installed" &>/dev/null
 				else
-					processing "[+] Installing Real VNC Viewer"
+					PROCESSING "[+] Installing Real VNC Viewer"
 					for x in {1..100}; do
 						prog_bar "$x"
 						wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
@@ -270,7 +271,7 @@ install_pgks() {
 					done
 					echo
 
-					processing "[+] Installing Real VNC Connect (Server)"
+					PROCESSING "[+] Installing Real VNC Connect (Server)"
 					for x in {1..100}; do
 						prog_bar "$x"
 						wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
@@ -280,7 +281,7 @@ install_pgks() {
 					done
 					echo
 
-					processing "[+] Adding VNC Connect (Server) service to the default startup"
+					PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
 					if ! systemctl is-active --quiet vncserver-x11-serviced; then
 						for x in {1..100}; do
 							prog_bar "$x"
@@ -297,7 +298,7 @@ install_pgks() {
 			#   snapd
 			############################
 			if [[ $pkg == "snapd" ]]; then
-				processing "[+] Installing Snap"
+				PROCESSING "[+] Installing Snap"
 				for x in {1..100}; do
 					prog_bar "$x"
 					sudo apt install snapd -y >/dev/null
@@ -305,7 +306,7 @@ install_pgks() {
 				echo
 
 				SNAPPKGS=(spotify volatility-phocean)
-				processing "[+] Installing snap packages"
+				PROCESSING "[+] Installing snap packages"
 				for x in {1..100}; do
 					prog_bar "$x"
 					sudo snap install "${SNAPPKGS[@]}" >/dev/null
@@ -318,24 +319,31 @@ install_pgks() {
 			#   ghidra
 			############################
 			if [[ $pkg == "ghidra" ]]; then
-				ghidra_dir="/opt/ghidra"
-				ghidra_ver=$(wget -O - --quiet https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
-				if [[ -d $ghidra_dir ]]; then
-					info "ghidra already installed here: $ghidra_dir"
+				GHIDRA_DIR="/opt/ghidra"
+				GHIDRA_ICON='https://git.io/JfMiE'
+				GHIDRA_DESKTOP='https://git.io/JfMiz'
+				GHIDRA_VER=$(wget -O - --quiet https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
+				if [[ -d $GHIDRA_DIR ]]; then
+					INFO "ghidra already installed here: $GHIDRA_DIR"
 				else
 					for x in {1..100}; do
 						prog_bar "$x"
-						wget -c -q 'https://ghidra-sre.org/$ghidra_ver' --no-hsts
+						wget -c -q "https://ghidra-sre.org/$GHIDRA_VER" --no-hsts
+						wget -O ghidra.png -c -q $GHIDRA_ICON --no-hsts
+						wget -O ghidra.desktop -c -q $GHIDRA_DESKTOP --no-hsts
 						sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra >/dev/null
 						rm ghidra_*.zip
-						sudo ln -s $ghidra_dir/ghidraRun /usr/local/bin/ghidra
+						sudo ln -s $GHIDRA_DIR/ghidraRun /usr/local/bin/ghidra
+						mv ghidra.png $GHIDRA_DIR/support/ghidra.png
+						mv ghidra.desktop "$HOME"/ghidra.desktop
+    					chown "$USER":"$USER" "$HOME"/ghidra.desktop
 						sleep .05
 					done
 					echo
 				fi
 				# jdk_dir="/opt/jdk-11"
 				# if [[ -d $jdk_dir ]]; then
-				# 	info "jdk-11 already installed here: $jdk_dir"
+				# 	INFO "jdk-11 already installed here: $jdk_dir"
 				# else
 				# 	wget 'https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz' --no-hsts
 				# 	sudo mkdir -p /opt/jdk-11/ && sudo tar -xzf OpenJDK11U-jdk_x64_linux_hotspot_11.0.7_10.tar.gz -C /opt/jdk-11/ --strip-components 1
@@ -347,11 +355,11 @@ install_pgks() {
 			#   volatility3
 			############################
 			if [[ $pkg == "volatility3" ]]; then
-				vol_dir="/opt/volatility3"
-				if [[ -d $vol_dir ]]; then
+				VOL_DIR="/opt/volatility3"
+				if [[ -d $VOL_DIR ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[+] Downloading volatility3"
+					PROCESSING "[+] Downloading volatility3"
 					for x in {1..100}; do
 						prog_bar "$x"
 						sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3 >/dev/null
@@ -370,13 +378,13 @@ install_pgks() {
 			# 		if [[ -d $burp_dir ]]; then
 			# 			echo 'skipping' &>/dev/null
 			# 		else
-			# 			processing "[+] Downloading burpsuite"
+			# 			PROCESSING "[+] Downloading burpsuite"
 			# 			for x in {1..100}; do
 			# 				prog_bar "$x"
 			# 				wget -q 'https://portswigger.net/burp/releases/download'
 			#
 			# 			done
-			# 			success
+			# 			SUCCESS
 			# 		fi
 			# 	fi
 			# }
@@ -389,7 +397,7 @@ install_pgks() {
 			# 		if [[ -x $(command -v hopper) ]]; then
 			# 			echo 'skipping' &>/dev/null
 			# 		else
-			# 			processing "[+] Downloading Hopperv4"
+			# 			PROCESSING "[+] Downloading Hopperv4"
 			# 			for x in {1..100}; do
 			# 				prog_bar "$x"
 			# 				wget -q "https://d2ap6ypl1xbe4k.cloudfront.net/Hopper-v4-4.5.28-Linux.deb"
@@ -406,11 +414,11 @@ install_pgks() {
 			#   sqlmap
 			############################
 			if [[ $pkg == "sqlmap" ]]; then
-				sqlmap_dir="/opt/sqlmap"
-				if [[ -d $sqlmap_dir ]]; then
+				SQLMAP_DIR="/opt/sqlmap"
+				if [[ -d $SQLMAP_DIR ]]; then
 					echo 'skipping' &>/dev/null
 				else
-					processing "[+] Downloading sqlmap"
+					PROCESSING "[+] Downloading sqlmap"
 					for x in {1..100}; do
 						prog_bar "$x"
 						sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap >/dev/null
@@ -420,39 +428,29 @@ install_pgks() {
 				fi
 			fi
 		else
-			info "$pkg is already installed"
+			INFO "$pkg is already installed"
 		fi
 	done
 }
 
 # setup paths
 setup_paths() {
-	processing "[+] Forcing color prompt in ~/.bashrc"
+	PROCESSING "[+] Forcing color prompt in ~/.bashrc"
 	if ! grep "export PS1" ~/.bashrc >/dev/null; then
 		echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
 	fi
 
-	processing "[+] Adding sqlmap to .bashrc"
+	PROCESSING "[+] Adding sqlmap to .bashrc"
 	if ! grep "alias sqlmap" ~/.bashrc >/dev/null; then
 		echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
 	fi
 
-	processing "[+] Adding ghidra to .bashrc"
-	if ! grep "alias ghidra" ~/.bashrc >/dev/null; then
-		echo "alias ghidra='/opt/ghidra/ghidraRun'" >>~/.bashrc
-	fi
-
-	# processing "[+] Adding openjdk to .bashrc"
-	# if ! grep "jdk" ~/.bashrc >/dev/null; then
-	# 	echo "export PATH=/opt/jdk-11/bin:$PATH" >>~/.bashrc
-	# fi
-
-	processing "[+] Adding volatility3 to .bashrc"
+	PROCESSING "[+] Adding volatility3 to .bashrc"
 	if ! grep "alias vol3" ~/.bashrc >/dev/null; then
 		echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
 	fi
 
-	processing "[+] Adding xclip to .bashrc"
+	PROCESSING "[+] Adding xclip to .bashrc"
 	if ! grep "alias xclip" ~/.bashrc >/dev/null; then
 		echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
 	fi
@@ -460,7 +458,7 @@ setup_paths() {
 
 #  pip installations
 py_mods() {
-	modules=(requests
+	MODULES=(requests
 		bs4
 		colorama
 		iptools
@@ -484,16 +482,16 @@ py_mods() {
 
 	#check_installed=$(pip list | awk '{print $1}' | awk '{if(NR>2)print}')
 
-	processing "[+] Installing Python modules"
-	sudo python3 -m pip install --upgrade pip >/dev/null
-	for mod in "${modules[@]}"; do
-		sudo python3 -m pip install --upgrade "$mod" >/dev/null
+	PROCESSING "[+] Installing Python modules"
+	sudo python3 -m pip install -U pip >/dev/null
+	for mod in "${MODULES[@]}"; do
+		sudo python3 -m pip install -U "$mod" >/dev/null
 	done
 }
 
 # remove boilerplate directories
 remove_dirs() {
-	bp_dirs=(
+	BP_DIRS=(
 		"$HOME"/Desktop
 		"$HOME"/Documents
 		"$HOME"/Downloads
@@ -504,42 +502,42 @@ remove_dirs() {
 		"$HOME"/Videos
 	)
 
-	for pkg in "${bp_dirs[@]}"; do
+	for pkg in "${BP_DIRS[@]}"; do
 		if [ -d "$pkg" ]; then
-			processing "[+] Removing boilerplate home directories"
+			PROCESSING "[+] Removing boilerplate home directories"
 			rmdir "$pkg"
 		fi
 	done
 }
 
-processing "[+] Updating repositories"
-update_sys 2>install_errors.txt
+PROCESSING "[+] Updating repositories"
+update_sys 2>install_errorss.txt
 
-processing "[+] Installing packages"
+PROCESSING "[+] Installing packages"
 install_pgks 2>install_errors.txt
 
-processing "[+] Setting up Paths"
+PROCESSING "[+] Setting up Paths"
 setup_paths 2>install_errors.txt
 
-processing "[+] Installing Python Modules"
+PROCESSING "[+] Installing Python Modules"
 py_mods 2>install_errors.txt
 
 # replace default terminal emulator with terminator
 if echo "$XDG_CURRENT_DESKTOP" | grep XFCE &>/dev/null; then
-	processing "[+] Setting terminator as the default terminal emulator"
-	curr_term=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
-	sudo mv /usr/bin/"$curr_term" /usr/bin/"$curr_term".bak
-	sudo ln -s /usr/bin/terminator /usr/bin/"$curr_term"
+	PROCESSING "[+] Setting terminator as the default terminal emulator"
+	CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
+	sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
+	sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
 fi
 
-processing "[+] Fixing any broken installs"
+PROCESSING "[+] Fixing any broken installs"
 sudo apt --fix-broken install &>/dev/null
 
-processing "[+] Updating bash prompt"
+PROCESSING "[+] Updating bash prompt"
 if [ -s "install_errors.txt" ]; then
-	error "see install_errors.txt"
+	ERROR "see install_errors.txt"
 else
-	success "No errors encountered"
+	SUCCESS "No ERRORs encountered"
 fi
 # refresh bash
 exec bash
