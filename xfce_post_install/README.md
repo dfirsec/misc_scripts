@@ -1,3 +1,3 @@
 My post install script for Xubuntu
 
-Test on Xubuntu 20.04
+Tested on a fresh install of Xubuntu 20.04-core.
