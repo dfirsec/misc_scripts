@@ -269,9 +269,7 @@ install_opt_pkgs() {
             #  stegsolve
             ############################
             if [[ $pkg == "stegsolve" ]]; then
-                if [ -f "stegsolve.jar" ]; then
-                    echo 'skipping' >dev/null
-                else
+                if ! [ -f "stegsolve.jar" ]; then
                     PROCESSING "[+] Downloading stegsolve.jar"
                     wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
                     chmod +x "stegsolve.jar"
@@ -284,8 +282,6 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "vnc" ]]; then
                 if ! sudo dpkg-query -l | grep realvnc; then
-                    echo "$pkg is installed" >dev/null
-                else
                     PROCESSING "[+] Installing Real VNC Viewer"
                     wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
                     sudo dpkg -i vnc_viewer.deb
@@ -338,6 +334,13 @@ install_opt_pkgs() {
                     mv ghidra.desktop "$HOME"/Desktop/ghidra.desktop
                     chmod +x "$HOME"/Desktop/ghidra.desktop
                     chown "$USER":"$USER" "$HOME"/Desktop/ghidra.desktop
+                    if test -f "$GHIDRA_VER"; then
+                        {
+                            rm -f "$GHIDRA_VER"
+                            sudo rm -rf /opt/ghidra_*
+                            sudo rm -rf /opt/ghidra/ghidra_*
+                        } 2>/dev/null
+                    fi
                 fi
             fi
 
@@ -346,9 +349,7 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "volatility3" ]]; then
                 VOL_DIR="/opt/volatility3"
-                if [[ -d $VOL_DIR ]]; then
-                    echo 'skipping' >dev/null
-                else
+                if ! [ -d $VOL_DIR ]; then
                     PROCESSING "[+] Downloading volatility3"
                     sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3
                 fi
@@ -359,9 +360,7 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "sqlmap" ]]; then
                 SQLMAP_DIR="/opt/sqlmap"
-                if [[ -d $SQLMAP_DIR ]]; then
-                    echo 'skipping' >dev/null
-                else
+                if ! [ -d $SQLMAP_DIR ]; then
                     PROCESSING "[+] Downloading sqlmap"
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap
                 fi
