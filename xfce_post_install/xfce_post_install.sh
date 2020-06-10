@@ -466,13 +466,6 @@ install_py_mods() {
         yara-python
     )
 
-    # update $PATH for user-binaries (systemd-path user-binaries)
-    if grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
-        echo "path exists"
-    else
-        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
-    fi
-
     #check_installed=$(pip list | awk '{print $1}' | awk '{if(NR>2)print}')
     sudo python3 -m pip install -U pip
     for mod in "${MODULES[@]}"; do
@@ -480,8 +473,37 @@ install_py_mods() {
     done
 }
 
+# setup paths
+setup_paths() {
+    PROCESSING "[+] Changing shell color prompt"
+    if ! grep "export PS1" ~/.bashrc; then
+        echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Updating shell for sqlmap"
+    if ! grep "alias sqlmap" ~/.bashrc; then
+        echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Updating shell for volatility3"
+    if ! grep "alias vol3" ~/.bashrc; then
+        echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Updating shell for xclip"
+    if ! grep "alias xclip" ~/.bashrc; then
+        echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
+    fi
+
+    # update $PATH for user-binaries (systemd-path user-binaries)
+    PROCESSING "[+] Updating path for user-binaries"
+    if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
+        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
+    fi
+}
+
 # remove boilerplate directories
-remove_dirs() {
+remove_bpdirs() {
     BP_DIRS=(
         "$HOME"/Desktop
         "$HOME"/Documents
@@ -493,14 +515,32 @@ remove_dirs() {
         "$HOME"/Videos
     )
 
-    for pkg in "${BP_DIRS[@]}"; do
-        if [ -d "$pkg" ]; then
-            PROCESSING "[+] Removing boilerplate home directories"
-            rmdir "$pkg"
-        fi
+    for dir in "${BP_DIRS[@]}"; do
+        # if [ -d "$dir" ]; then
+        #     rmdir "$dir"
+        # fi
+        [ -d "$dir" ] && rm -rf "$dir"
     done
 }
 
+clean_up() {
+    PROCESSING "[+] Fixing any broken installs"
+    sudo apt-get --fix-broken install
+
+    PROCESSING "[+] Cleaning apt cache"
+    sudo apt-get clean
+
+    PROCESSING "[+] Removing old kernels"
+    sudo apt-get purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
+
+    PROCESSING "[+] Emptying the trash"
+    rm -rf /home/*/.local/share/Trash/*/** &>/dev/null
+    rm -rf /root/.local/share/Trash/*/** &>/dev/null
+
+    SUCCESS "Final cleanup"
+}
+
+# Processing Stage
 {
     PROCESSING "[+] Updating repositories"
     update_sys
@@ -511,7 +551,7 @@ remove_dirs() {
     PROCESSING "[+] Installing optional packages"
     install_opt_pkgs
 
-    PROCESSING "[+] Setting up Paths"
+    PROCESSING "[+] Setting up shell and paths"
     setup_paths
 
     PROCESSING "[+] Installing Ruby Gems"
@@ -519,6 +559,11 @@ remove_dirs() {
 
     PROCESSING "[+] Installing Python Modules"
     install_py_mods
+
+    PROCESSING "[+] Removing boilerplate home directories"
+    remove_bpdirs
+
+    clean_up
 } 2>>$LOGFILE
 
 # replace default terminal emulator with terminator
@@ -528,21 +573,6 @@ if echo "$XDG_CURRENT_DESKTOP" | grep XFCE; then
     sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
     sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
 fi
-
-PROCESSING "[+] Fixing any broken installs"
-sudo apt-get --fix-broken install
-
-PROCESSING "[+] Cleaning apt cache"
-sudo apt-get clean
-
-PROCESSING "[+] Removing old kernels"
-sudo apt-get purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
-
-PROCESSING "[+] Emptying the trash"
-rm -rf /home/*/.local/share/Trash/*/** &>/dev/null
-rm -rf /root/.local/share/Trash/*/** &>/dev/null
-
-SUCCESS "Final cleanup"
 
 if [ -s $LOGFILE ]; then
     ERROR "Possible errors encountered. See $LOGFILE"
