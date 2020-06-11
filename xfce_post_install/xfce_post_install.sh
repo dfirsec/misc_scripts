@@ -310,6 +310,7 @@ install_opt_pkgs() {
                     mv ghidra.desktop "$HOME"/Desktop/ghidra.desktop
                     chmod +x "$HOME"/Desktop/ghidra.desktop
                     chown "$USER":"$USER" "$HOME"/Desktop/ghidra.desktop
+
                     if test -f "$GHIDRA_VER"; then
                         {
                             rm -f "$GHIDRA_VER"
@@ -493,6 +494,19 @@ remove_bpdirs() {
     done
 }
 
+replace_term() {
+    # replace default terminal emulator with terminator
+    if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
+        PROCESSING "[+] Setting terminator as the default terminal emulator"
+        CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
+        sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
+        sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
+        sudo cp /usr/share/applications/terminator.desktop "$HOME"/Desktop
+        sudo chmod +x "$HOME"/Desktop/terminator.desktop
+        sudo chown "$USER":"$USER" "$HOME"/Desktop/terminator.desktop
+    fi
+}
+
 clean_up() {
     PROCESSING "[+] Fixing any broken installs"
     sudo apt-get --fix-broken install
@@ -531,16 +545,10 @@ clean_up() {
     PROCESSING "[+] Removing boilerplate home directories"
     remove_bpdirs
 
+    replace_term
+
     clean_up
 } 2>>$LOGFILE
-
-# replace default terminal emulator with terminator
-if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
-    PROCESSING "[+] Setting terminator as the default terminal emulator"
-    CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
-    sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
-    sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
-fi
 
 PROCESSING "[+] Updating bash prompt"
 
