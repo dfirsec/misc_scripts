@@ -1,4 +1,4 @@
-My post install script for Xubuntu; tested on a fresh install of Xubuntu 20.04-core.  
+My post install script for Xubuntu; tested on a fresh install of Xubuntu 20.04-core (https://unit193.net/xubuntu/core/).  
 
 ## Steps
 **1)** Download the script
