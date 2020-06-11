@@ -22,4 +22,4 @@ user@machine:[~]: ./xfce_post_install.sh
 [sudo] password for user: 
 ```
 
-:loudspeaker:  **Use at your own risk** -- recommend testing in a VM before installing on a live system.
+:loudspeaker:  **Install at your own risk -- recommend testing in a VM before installing on a live system**.
