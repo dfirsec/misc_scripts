@@ -107,7 +107,7 @@ install_pkgs() {
         python3-pip
         python3-scapy
         python3-testresources
-        python3-pyqt5  
+        python3-pyqt5
         pyqt5-dev-tools
         qttools5-dev-tools
         qpdf
@@ -157,8 +157,11 @@ install_pkgs() {
         zlib1g-dev
     )
 
+    PROCESSING "[+] Adding universal repo"
+    sudo add-apt-repository universe >/dev/null
+
     for req in "${REQPKGS[@]}"; do
-        if ! dpkg -s "$req" &>/dev/null; then
+        if ! dpkg -s "$req" 2>/dev/null; then
             PROCESSING "[+] Installing $req"
             sudo apt-get install -y "$req"
         fi
@@ -182,7 +185,7 @@ install_opt_pkgs() {
     )
 
     for pkg in "${OPTPKGS[@]}"; do
-        if ! dpkg -s "$pkg" &>/dev/null; then
+        if ! dpkg -s "$pkg" 2>/dev/null; then
             ############################
             #   wireshark
             ############################
@@ -212,7 +215,7 @@ install_opt_pkgs() {
             if [[ $pkg == "docker" ]]; then
                 PROCESSING "[+] Installing Docker"
                 sudo apt-get install docker.io -y
-                sudo groupadd docker
+                sudo groupadd docker 2>/dev/null
                 sudo usermod -aG docker "$LOGNAME"
             fi
 
@@ -267,8 +270,8 @@ install_opt_pkgs() {
 
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
-                        sudo /etc/init.d/vncserver-x11-serviced start
-                        sudo update-rc.d vncserver-x11-serviced defaults
+                        sudo systemctl start vncserver-x11-serviced.service
+                        sudo systemctl enable vncserver-x11-serviced.service
                     fi
                 fi
             fi
@@ -324,7 +327,7 @@ install_opt_pkgs() {
                 VOL_DIR="/opt/volatility3"
                 if ! [ -d $VOL_DIR ]; then
                     PROCESSING "[+] Downloading volatility3"
-                    sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3
+                    sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3 2>/dev/null
                 fi
             fi
 
@@ -335,7 +338,7 @@ install_opt_pkgs() {
                 SQLMAP_DIR="/opt/sqlmap"
                 if ! [ -d $SQLMAP_DIR ]; then
                     PROCESSING "[+] Downloading sqlmap"
-                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap
+                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap 2>/dev/null
                 fi
             fi
         else
@@ -412,7 +415,6 @@ install_py_mods() {
         Pillow
         pwntools
         pyasn1
-        pydeep
         pydispatch
         pydivert
         pydot
@@ -475,9 +477,7 @@ setup_paths() {
 # remove boilerplate directories
 remove_bpdirs() {
     BP_DIRS=(
-        "$HOME"/Desktop
         "$HOME"/Documents
-        "$HOME"/Downloads
         "$HOME"/Music
         "$HOME"/Pictures
         "$HOME"/Public
@@ -504,10 +504,8 @@ clean_up() {
     sudo apt-get purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
 
     PROCESSING "[+] Emptying the trash"
-    rm -rf /home/*/.local/share/Trash/*/** &>/dev/null
-    rm -rf /root/.local/share/Trash/*/** &>/dev/null
-
-    SUCCESS "Final cleanup"
+    rm -rf /home/*/.local/share/Trash/*/** 2>/dev/null
+    rm -rf /root/.local/share/Trash/*/** 2>/dev/null
 }
 
 # Processing Stage
@@ -544,12 +542,13 @@ if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
     sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
 fi
 
+PROCESSING "[+] Updating bash prompt"
+
 if [ -s $LOGFILE ]; then
     ERROR "Possible errors encountered. See $LOGFILE"
 else
     SUCCESS $LOGFILE
 fi
 
-PROCESSING "[+] Updating bash prompt"
 # refresh bash
 exec bash
