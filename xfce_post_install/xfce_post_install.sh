@@ -84,37 +84,6 @@ install_pkgs() {
         inspircd
         kazam
         lame
-        lib32stdc++6
-        libc6-dev-i386
-        libcanberra-gtk-module:i386
-        libcompress-raw-lzma-perl
-        libemail-outlook-message-perl
-        libffi-dev
-        libfuzzy-dev
-        libgif-dev
-        libgtk2.0-0:i386
-        libimage-exiftool-perl
-        libjavassist-java
-        libjpeg-turbo8
-        libjpeg-turbo8-dev
-        liblzma-dev
-        libmagic-dev
-        libncurses5
-        libncurses5-dev
-        libncurses5:i386
-        libpcre++-dev
-        libpcre3
-        libpcre3-dev
-        libsm6:i386
-        libsqlite3-dev
-        libssl-dev
-        libtool
-        libxml2-dev
-        libxslt1-dev
-        libxxf86vm1:i386
-        libyaml-dev
-        libyara3
-        libzmq3-dev
         ltrace
         mercurial
         mplayer
@@ -138,6 +107,9 @@ install_pkgs() {
         python3-pip
         python3-scapy
         python3-testresources
+        python3-pyqt5  
+        pyqt5-dev-tools
+        qttools5-dev-tools
         qpdf
         qrencode
         radare2
@@ -173,6 +145,7 @@ install_pkgs() {
         usbmount
         vagrant
         vbindiff
+        virtualenv
         virtualbox-qt
         whois
         wxhexeditor
@@ -448,16 +421,14 @@ install_py_mods() {
         pylzma
         pyopenssl
         pypdns
+        pyqt5
         pypssl
         python-magic
-        qt4
         r2pipe
         rarfile
-        rekall
         requesocks
         requests
         scipy
-        setuptools
         shodan
         uTidylib
         virustotal3
@@ -466,7 +437,7 @@ install_py_mods() {
     )
 
     #check_installed=$(pip list | awk '{print $1}' | awk '{if(NR>2)print}')
-    sudo python3 -m pip install -U pip
+    sudo python3 -m pip install -U setuptools pip wheel
     for mod in "${MODULES[@]}"; do
         sudo python3 -m pip install "$mod"
     done
@@ -566,7 +537,7 @@ clean_up() {
 } 2>>$LOGFILE
 
 # replace default terminal emulator with terminator
-if echo "$XDG_CURRENT_DESKTOP" | grep XFCE; then
+if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
     PROCESSING "[+] Setting terminator as the default terminal emulator"
     CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
     sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
