@@ -48,6 +48,7 @@ install_pkgs() {
         binutils
         binwalk
         bison
+        bless
         bsdgames
         build-essential
         bundler
