@@ -34,6 +34,21 @@ if [ "$EUID" -eq 0 ]; then
     exit
 fi
 
+# Ref: https://gist.github.com/tedivm/e11ebfdc25dc1d7935a3d5640a1f1c90
+apt_wait() {
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+        sleep 1
+    done
+    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+        sleep 1
+    done
+    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
+        while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1; do
+            sleep 1
+        done
+    fi
+}
+
 update_sys() {
     sudo apt-get update
     sudo apt-get upgrade -y
@@ -52,6 +67,7 @@ install_pkgs() {
         bsdgames
         build-essential
         bundler
+        clamav
         clamav-daemon
         cmake
         curl
@@ -159,13 +175,12 @@ install_pkgs() {
         zlib1g-dev
     )
 
-    PROCESSING "[+] Adding universal repo"
-    sudo add-apt-repository universe >/dev/null
-
     for req in "${REQPKGS[@]}"; do
         if ! dpkg -s "$req" 2>/dev/null; then
             PROCESSING "[+] Installing $req"
             sudo apt-get install -y "$req"
+        else
+            echo "installed" >/dev/null
         fi
     done
 }
@@ -173,7 +188,7 @@ install_pkgs() {
 install_opt_pkgs() {
     OPTPKGS=(
         atom
-        code
+        dirsearch
         docker
         ghidra
         snapd
@@ -181,6 +196,7 @@ install_opt_pkgs() {
         stegsolve
         sublime
         vnc
+        vscode
         volatility3
         wireshark
     )
@@ -202,13 +218,21 @@ install_opt_pkgs() {
             ############################
             #   vscode
             ############################
-            if [[ $pkg == "code" ]]; then
+            if [[ $pkg == "vscode" ]]; then
+                PROCESSING "[+] Installing vscode"
                 PROCESSING "[+] Importing the Microsoft GPG key"
-                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add - 2>/dev/null
                 PROCESSING "[+] Enabling the Visual Studio Code repository and install"
                 sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
                 sudo apt-get update
                 sudo apt-get install code -y
+
+                # rm vscode sources list to avoide conflict
+                sudo rm /etc/apt/sources.list.d/vscode.list
+
+                # intall option
+                # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
+                # sudo dpkg -i vscode.deb
             fi
 
             ############################
@@ -230,6 +254,17 @@ install_opt_pkgs() {
                 sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
                 sudo apt-get update
                 sudo apt-get install atom -y
+            fi
+
+            ############################
+            #   dirsearch
+            ############################
+            if [[ $pkg == "dirsearch" ]]; then
+                DIRSRCH_DIR="/opt/dirsearch"
+                if ! [ -d $DIRSRCH_DIR ]; then
+                    PROCESSING "[+] Installing dirsearch"
+                    sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR 2>/dev/null 2>/dev/null
+                fi
             fi
 
             ############################
@@ -273,7 +308,7 @@ install_opt_pkgs() {
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
                         sudo systemctl start vncserver-x11-serviced.service
-                        sudo systemctl enable vncserver-x11-serviced.service
+                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
                     fi
                 fi
             fi
@@ -288,6 +323,7 @@ install_opt_pkgs() {
                 SNAPPKGS=(spotify volatility-phocean)
                 PROCESSING "[+] Installing snap packages"
                 sudo snap install "${SNAPPKGS[@]}"
+                sudo snap install --classic code
             fi
 
             ############################
@@ -305,7 +341,7 @@ install_opt_pkgs() {
                     wget -c -q "https://ghidra-sre.org/$GHIDRA_VER" --no-hsts
                     wget -q $GHIDRA_ICON --no-hsts -O ghidra.png
                     wget -q $GHIDRA_DESKTOP --no-hsts -O ghidra.desktop
-                    sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
+                    sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* $GHIDRA_DIR
                     rm ghidra_*.zip
                     sudo ln -s $GHIDRA_DIR/ghidraRun /usr/local/bin/ghidra
                     sudo mv ghidra.png $GHIDRA_DIR/support/ghidra.png
@@ -330,7 +366,7 @@ install_opt_pkgs() {
                 VOL_DIR="/opt/volatility3"
                 if ! [ -d $VOL_DIR ]; then
                     PROCESSING "[+] Downloading volatility3"
-                    sudo git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3 2>/dev/null
+                    sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL_DIR 2>/dev/null
                 fi
             fi
 
@@ -341,7 +377,7 @@ install_opt_pkgs() {
                 SQLMAP_DIR="/opt/sqlmap"
                 if ! [ -d $SQLMAP_DIR ]; then
                     PROCESSING "[+] Downloading sqlmap"
-                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git /opt/sqlmap 2>/dev/null
+                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR 2>/dev/null
                 fi
             fi
         else
@@ -352,22 +388,33 @@ install_opt_pkgs() {
 
 # setup paths
 setup_paths() {
+    # update $PATH for user-binaries (systemd-path user-binaries)
+    PROCESSING "[+] Updating path for user-binaries"
+    if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
+        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
+    fi
+
     PROCESSING "[+] Forcing color prompt in ~/.bashrc"
     if ! grep "export PS1" ~/.bashrc; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
     fi
 
-    PROCESSING "[+] Adding sqlmap to .bashrc"
-    if ! grep "alias sqlmap" ~/.bashrc; then
-        echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
+    PROCESSING "[+] Adding dirsearch alias"
+    if ! grep "alias dirsearch" ~/.bashrc; then
+        echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
     fi
 
-    PROCESSING "[+] Adding volatility3 to .bashrc"
+    PROCESSING "[+] Adding sqlmap alias"
+    if ! grep "alias sqlmap" ~/.bashrc; then
+        echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Adding volatility3 alias"
     if ! grep "alias vol3" ~/.bashrc; then
         echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
     fi
 
-    PROCESSING "[+] Adding xclip to .bashrc"
+    PROCESSING "[+] Adding xclip alias"
     if ! grep "alias xclip" ~/.bashrc; then
         echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
     fi
@@ -447,35 +494,6 @@ install_py_mods() {
     done
 }
 
-# setup paths
-setup_paths() {
-    PROCESSING "[+] Changing shell color prompt"
-    if ! grep "export PS1" ~/.bashrc; then
-        echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Updating shell for sqlmap"
-    if ! grep "alias sqlmap" ~/.bashrc; then
-        echo "alias sqlmap='python /opt/sqlmap/sqlmap.py'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Updating shell for volatility3"
-    if ! grep "alias vol3" ~/.bashrc; then
-        echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Updating shell for xclip"
-    if ! grep "alias xclip" ~/.bashrc; then
-        echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
-    fi
-
-    # update $PATH for user-binaries (systemd-path user-binaries)
-    PROCESSING "[+] Updating path for user-binaries"
-    if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
-        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
-    fi
-}
-
 # remove boilerplate directories
 remove_bpdirs() {
     BP_DIRS=(
@@ -525,6 +543,9 @@ clean_up() {
 
 # Processing Stage
 {
+    INFO "[-] Wait for lock release"
+    apt_wait
+
     PROCESSING "[+] Updating repositories"
     update_sys
 
