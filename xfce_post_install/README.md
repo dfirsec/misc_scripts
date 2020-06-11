@@ -1,5 +1,6 @@
 My post install script for Xubuntu; tested on a fresh install of Xubuntu 20.04-core.  
 
+## Steps
 Download the script
 ```text
 user@machine:[~]: wget -q https://git.io/Jf9lF -O xfce_post_install.sh
