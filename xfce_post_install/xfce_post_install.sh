@@ -174,7 +174,6 @@ install_opt_pkgs() {
         code
         docker
         ghidra
-        hashcat
         snapd
         sqlmap
         stegsolve
@@ -193,8 +192,9 @@ install_opt_pkgs() {
                 PROCESSING "[+] Installing wireshark"
                 sudo add-apt-repository ppa:wireshark-dev/stable
                 sudo apt-get update
+                echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
                 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
-                sudo unset DEBIAN_FRONTEND
+                unset DEBIAN_FRONTEND
             fi
 
             ############################
@@ -301,8 +301,8 @@ install_opt_pkgs() {
                 else
                     PROCESSING "[+] Installing ghidra"
                     wget -c -q "https://ghidra-sre.org/$GHIDRA_VER" --no-hsts
-                    wget -O ghidra.png -c -q $GHIDRA_ICON --no-hsts
-                    wget -O ghidra.desktop -c -q $GHIDRA_DESKTOP --no-hsts
+                    wget -q $GHIDRA_ICON --no-hsts -O ghidra.png
+                    wget -q $GHIDRA_DESKTOP --no-hsts -O ghidra.desktop
                     sudo unzip -q ghidra_*.zip -d /opt && sudo mv /opt/ghidra_* /opt/ghidra
                     rm ghidra_*.zip
                     sudo ln -s $GHIDRA_DIR/ghidraRun /usr/local/bin/ghidra
@@ -429,7 +429,6 @@ install_py_mods() {
         python-magic
         r2pipe
         rarfile
-        requesocks
         requests
         scipy
         shodan
@@ -553,7 +552,7 @@ clean_up() {
 PROCESSING "[+] Updating bash prompt"
 
 if [ -s $LOGFILE ]; then
-    ERROR "Possible errors encountered. See $LOGFILE"
+    INFO "Check $LOGFILE for possible errors encountered"
 else
     SUCCESS $LOGFILE
 fi
