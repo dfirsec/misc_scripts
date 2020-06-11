@@ -84,6 +84,7 @@ install_pkgs() {
         inspircd
         kazam
         lame
+        libimage-exiftool-perl
         ltrace
         mercurial
         mplayer
