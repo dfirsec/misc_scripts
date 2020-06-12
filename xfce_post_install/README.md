@@ -75,3 +75,13 @@ Command:  xorsearch-x86-s (x86 static)
 ```text
 Command:  xorstrings
 ```
+--------------------------------------------
+Volatility (Python2 version)
+```text
+Command:  vol2
+```
+
+Volatility3 (Python3 version)
+```text
+Command:  vol3
+```
