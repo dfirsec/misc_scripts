@@ -188,6 +188,25 @@ install_pkgs() {
     done
 }
 
+# setup paths
+setup_paths() {
+    # update $PATH for user-binaries (systemd-path user-binaries)
+    PROCESSING "[+] Updating path for user-binaries"
+    if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc >/dev/null; then
+        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Forcing color prompt in ~/.bashrc"
+    if ! grep "export PS1" ~/.bashrc; then
+        echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
+    fi
+
+    PROCESSING "[+] Adding xclip alias"
+    if ! grep "alias xclip" ~/.bashrc >/dev/null; then
+        echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
+    fi
+}
+
 install_opt_pkgs() {
     OPTPKGS=(
         atom
@@ -492,25 +511,6 @@ didier_tools() {
     chmod +x $DSTOOLS_DIR/xorsearch/xorsearch-x*
 }
 
-# setup paths
-setup_paths() {
-    # update $PATH for user-binaries (systemd-path user-binaries)
-    PROCESSING "[+] Updating path for user-binaries"
-    if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc; then
-        echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Forcing color prompt in ~/.bashrc"
-    if ! grep "export PS1" ~/.bashrc; then
-        echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Adding xclip alias"
-    if ! grep "alias xclip" ~/.bashrc; then
-        echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
-    fi
-}
-
 install_ruby_gems() {
     PROCESSING "[+] Installing Ruby Gems"
     GEMS=(
@@ -642,14 +642,14 @@ clean_up() {
     PROCESSING "[+] Installing packages"
     install_pkgs
 
+    PROCESSING "[+] Setting up shell and paths"
+    setup_paths
+
     PROCESSING "[+] Installing optional packages"
     install_opt_pkgs
 
     PROCESSING "[+] Installing Didier's Tools"
     didier_tools
-
-    PROCESSING "[+] Setting up shell and paths"
-    setup_paths
 
     PROCESSING "[+] Installing Ruby Gems"
     install_ruby_gems
