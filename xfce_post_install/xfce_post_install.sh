@@ -302,7 +302,7 @@ install_opt_pkgs() {
                 if ! command -v java-jar /opt/jd-gui/jd-gui.jar >/dev/null; then
                     PROCESSING "[+] Installing jd-gui"
                     wget -c -q https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.deb -O jd-gui.deb
-                    sudo dpkg -s -i jd-gui.deb
+                    sudo dpkg -i jd-gui.deb
                     rm jd-gui.deb
                 fi
             fi
