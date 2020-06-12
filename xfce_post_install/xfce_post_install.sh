@@ -308,6 +308,14 @@ install_opt_pkgs() {
             fi
 
             ############################
+            #   snapd
+            ############################
+            if [[ $pkg == "snapd" ]]; then
+                PROCESSING "[+] Installing Snap"
+                sudo apt-get -qq install snapd -y
+            fi
+
+            ############################
             #  stegsolve
             ############################
             if [[ $pkg == "stegsolve" ]]; then
@@ -316,26 +324,6 @@ install_opt_pkgs() {
                     wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
                     chmod +x "stegsolve.jar"
 
-                fi
-            fi
-
-            ############################
-            #   snapd
-            ############################
-            if [[ $pkg == "snapd" ]]; then
-                PROCESSING "[+] Installing Snap"
-                sudo apt-get -qq install snapd -y
-
-                SNAP_PKGS=(
-                    spotify
-                    volatility-phocean
-                )
-                PROCESSING "[+] Installing snap packages"
-                sudo snap install "${SNAP_PKGS[@]}"
-
-                PROCESSING "[+] Adding volatility alias"
-                if ! grep "alias vol" ~/.bashrc; then
-                    echo "alias vol='volatility-phocean.volatility'" >>~/.bashrc
                 fi
             fi
 
@@ -383,7 +371,7 @@ install_opt_pkgs() {
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
                         sudo systemctl start vncserver-x11-serviced.service
-                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
+                        sudo systemctl enable vncserver-x11-serviced.service
                     fi
                 fi
             fi
@@ -436,6 +424,15 @@ install_opt_pkgs() {
             echo "$pkg is already installed"
         fi
     done
+}
+
+snap_tools() {
+    SNAP_PKGS=(spotify volatility-phocean)
+    sudo snap install "${SNAP_PKGS[@]}"
+    PROCESSING "[+] Adding volatility alias"
+    if ! grep "alias vol" ~/.bashrc >/dev/null; then
+        echo "alias vol='volatility-phocean.volatility'" >>~/.bashrc
+    fi
 }
 
 didier_tools() {
@@ -648,7 +645,10 @@ clean_up() {
     PROCESSING "[+] Installing optional packages"
     install_opt_pkgs
 
-    PROCESSING "[+] Installing Didier's Tools"
+    PROCESSING "[+] Installing snap packages"
+    snap_tools
+
+    PROCESSING "[+] Installing Didier's tools"
     didier_tools
 
     PROCESSING "[+] Installing Ruby Gems"
