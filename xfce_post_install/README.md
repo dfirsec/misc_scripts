@@ -1,6 +1,7 @@
 My post install script for Xubuntu; tested on a fresh install of Xubuntu 20.04-core (https://unit193.net/xubuntu/core/).
 
-:loudspeaker:  **Install at your own risk -- recommend testing in a VM before installing on a live system**.
+:loudspeaker:  
+**Install at your own risk -- recommend testing in a VM before installing on a live system**.
 
 ## Steps
 **1)** Download the script
