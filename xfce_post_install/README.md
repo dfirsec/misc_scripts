@@ -25,7 +25,7 @@ user@machine:[~]: ./xfce_post_install.sh
 :loudspeaker:  **Install at your own risk -- recommend testing in a VM before installing on a live system**.
 
 
-## Tools
+## Tools -- *more to follow*
 Didier Steven's Tools - https://github.com/DidierStevens/DidierStevensSuite
 
 **base64dump**: Extract base64 strings from file
