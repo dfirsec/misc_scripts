@@ -104,6 +104,7 @@ install_pkgs() {
         libimage-exiftool-perl
         ltrace
         mercurial
+        mitmproxy
         mplayer
         nginx
         ngrep
@@ -191,6 +192,7 @@ install_opt_pkgs() {
         dirsearch
         docker
         ghidra
+        jd-gui
         snapd
         sqlmap
         stegsolve
@@ -203,48 +205,6 @@ install_opt_pkgs() {
 
     for pkg in "${OPTPKGS[@]}"; do
         if ! dpkg -s "$pkg" 2>/dev/null; then
-            ############################
-            #   wireshark
-            ############################
-            if [[ $pkg == "wireshark" ]]; then
-                PROCESSING "[+] Installing wireshark"
-                sudo add-apt-repository ppa:wireshark-dev/stable
-                sudo apt-get update
-                echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-                sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
-                unset DEBIAN_FRONTEND
-            fi
-
-            ############################
-            #   vscode
-            ############################
-            if [[ $pkg == "vscode" ]]; then
-                PROCESSING "[+] Installing vscode"
-                PROCESSING "[+] Importing the Microsoft GPG key"
-                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add - 2>/dev/null
-                PROCESSING "[+] Enabling the Visual Studio Code repository and install"
-                sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
-                sudo apt-get update
-                sudo apt-get install code -y
-
-                # rm vscode sources list to avoide conflict
-                sudo rm /etc/apt/sources.list.d/vscode.list
-
-                # intall option
-                # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
-                # sudo dpkg -i vscode.deb
-            fi
-
-            ############################
-            #   docker
-            ############################
-            if [[ $pkg == "docker" ]]; then
-                PROCESSING "[+] Installing Docker"
-                sudo apt-get install docker.io -y
-                sudo groupadd docker 2>/dev/null
-                sudo usermod -aG docker "$LOGNAME"
-            fi
-
             ############################
             #   atom
             ############################
@@ -265,65 +225,20 @@ install_opt_pkgs() {
                     PROCESSING "[+] Installing dirsearch"
                     sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR 2>/dev/null 2>/dev/null
                 fi
-            fi
-
-            ############################
-            #   sublime
-            ############################
-            if [[ $pkg == "sublime-text" ]]; then
-                PROCESSING "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
-                wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
-                echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
-                sudo apt-get update
-                sudo apt-get install sublime-text -y
-            fi
-
-            ############################
-            #  stegsolve
-            ############################
-            if [[ $pkg == "stegsolve" ]]; then
-                if ! [ -f "stegsolve.jar" ]; then
-                    PROCESSING "[+] Downloading stegsolve.jar"
-                    wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
-                    chmod +x "stegsolve.jar"
-
+                PROCESSING "[+] Adding dirsearch alias"
+                if ! grep "alias dirsearch" ~/.bashrc; then
+                    echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
                 fi
             fi
 
             ############################
-            #   vnc
+            #   docker
             ############################
-            if [[ $pkg == "vnc" ]]; then
-                if ! sudo dpkg-query -l | grep realvnc; then
-                    PROCESSING "[+] Installing Real VNC Viewer"
-                    wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
-                    sudo dpkg -i vnc_viewer.deb
-                    rm vnc_viewer.deb
-
-                    PROCESSING "[+] Installing Real VNC Connect (Server)"
-                    wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
-                    sudo dpkg -i vnc_server.deb
-                    rm vnc_server.deb
-
-                    PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
-                    if ! systemctl is-active --quiet vncserver-x11-serviced; then
-                        sudo systemctl start vncserver-x11-serviced.service
-                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
-                    fi
-                fi
-            fi
-
-            ############################
-            #   snapd
-            ############################
-            if [[ $pkg == "snapd" ]]; then
-                PROCESSING "[+] Installing Snap"
-                sudo apt-get install snapd -y
-
-                SNAPPKGS=(spotify volatility-phocean)
-                PROCESSING "[+] Installing snap packages"
-                sudo snap install "${SNAPPKGS[@]}"
-                sudo snap install --classic code
+            if [[ $pkg == "docker" ]]; then
+                PROCESSING "[+] Installing Docker"
+                sudo apt-get install docker.io -y
+                sudo groupadd docker 2>/dev/null
+                sudo usermod -aG docker "$LOGNAME"
             fi
 
             ############################
@@ -360,13 +275,46 @@ install_opt_pkgs() {
             fi
 
             ############################
-            #   volatility3
+            #   jd-gui
             ############################
-            if [[ $pkg == "volatility3" ]]; then
-                VOL_DIR="/opt/volatility3"
-                if ! [ -d $VOL_DIR ]; then
-                    PROCESSING "[+] Downloading volatility3"
-                    sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL_DIR 2>/dev/null
+            if [[ $pkg == "jd-gui" ]]; then
+                if ! command -v java-jar /opt/jd-gui/jd-gui.jar >/dev/null; then
+                    PROCESSING "[+] Installing jd-gui"
+                    wget -c -q https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.deb -O jd-gui.deb
+                    sudo dpkg -i jd-gui.deb
+                    rm jd-gui.deb
+                fi
+            fi
+
+            ############################
+            #  stegsolve
+            ############################
+            if [[ $pkg == "stegsolve" ]]; then
+                if ! [ -f "stegsolve.jar" ]; then
+                    PROCESSING "[+] Downloading stegsolve.jar"
+                    wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
+                    chmod +x "stegsolve.jar"
+
+                fi
+            fi
+
+            ############################
+            #   snapd
+            ############################
+            if [[ $pkg == "snapd" ]]; then
+                PROCESSING "[+] Installing Snap"
+                sudo apt-get install snapd -y
+
+                SNAP_PKGS=(
+                    spotify
+                    volatility-phocean
+                )
+                PROCESSING "[+] Installing snap packages"
+                sudo snap install "${SNAP_PKGS[@]}"
+
+                PROCESSING "[+] Adding volatility alias"
+                if ! grep "alias vol" ~/.bashrc; then
+                    echo "alias vol='volatility-phocean.volatility'" >>~/.bashrc
                 fi
             fi
 
@@ -379,11 +327,176 @@ install_opt_pkgs() {
                     PROCESSING "[+] Downloading sqlmap"
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR 2>/dev/null
                 fi
+                PROCESSING "[+] Adding sqlmap alias"
+                if ! grep "alias sqlmap" ~/.bashrc; then
+                    echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
+                fi
+            fi
+
+            ############################
+            #   sublime
+            ############################
+            if [[ $pkg == "sublime-text" ]]; then
+                PROCESSING "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
+                wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
+                echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
+                sudo apt-get update
+                sudo apt-get install sublime-text -y
+            fi
+
+            ############################
+            #   vnc
+            ############################
+            if [[ $pkg == "vnc" ]]; then
+                if ! sudo dpkg-query -l | grep realvnc; then
+                    PROCESSING "[+] Installing Real VNC Viewer"
+                    wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
+                    sudo dpkg -i vnc_viewer.deb
+                    rm vnc_viewer.deb
+
+                    PROCESSING "[+] Installing Real VNC Connect (Server)"
+                    wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
+                    sudo dpkg -i vnc_server.deb
+                    rm vnc_server.deb
+
+                    PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
+                    if ! systemctl is-active --quiet vncserver-x11-serviced; then
+                        sudo systemctl start vncserver-x11-serviced.service
+                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
+                    fi
+                fi
+            fi
+
+            ############################
+            #   volatility3
+            ############################
+            if [[ $pkg == "volatility3" ]]; then
+                VOL3_DIR="/opt/volatility3"
+                if ! [ -d $VOL3_DIR ]; then
+                    PROCESSING "[+] Downloading volatility3"
+                    sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR 2>/dev/null
+                fi
+                PROCESSING "[+] Adding volatility3 alias"
+                if ! grep "alias vol3" ~/.bashrc; then
+                    echo "alias vol3='sudo python3 /opt/volatility3/vol.py'" >>~/.bashrc
+                fi
+            fi
+
+            ############################
+            #   vscode
+            ############################
+            if [[ $pkg == "vscode" ]]; then
+                PROCESSING "[+] Installing vscode"
+                PROCESSING "[+] Importing the Microsoft GPG key"
+                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add - 2>/dev/null
+                PROCESSING "[+] Enabling the Visual Studio Code repository and install"
+                sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+                sudo apt-get update
+                sudo apt-get install code -y
+                # rm vscode sources list to avoide conflict
+                sudo rm /etc/apt/sources.list.d/vscode.list
+                # intall option
+                # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
+                # sudo dpkg -i vscode.deb
+            fi
+
+            ############################
+            #   wireshark
+            ############################
+            if [[ $pkg == "wireshark" ]]; then
+                PROCESSING "[+] Installing wireshark"
+                sudo add-apt-repository ppa:wireshark-dev/stable
+                sudo apt-get update
+                echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
+                sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
+                unset DEBIAN_FRONTEND
             fi
         else
             echo "$pkg is already installed"
         fi
     done
+}
+
+didier_tools() {
+    # TOOLS
+    # Extract base64 strings from file: base64dump_V0_0_9.zip
+    # Analyze MIME files: emldump_V0_0_9.zip
+    # JPEG file analysis tool: jpegdump_V0_0_7.zip
+    # Analyze OLE files (Compound Binary Files): oledump_V0_0_9.zip
+    # PDF analysis: pdf-parser_V0_7_4.zip
+    # PDF triage: pdfid_v0_2_7.zip
+    # Bruteforce a file for XOR, ROL, ROT, SHIFT...encoding and search for a string: XORSearch_V1_9_2.zip
+    # Bruteforce a file for XOR, ROL, ROT, SHIFT...encoding and dump strings: XORStrings_V0_0_1.zip
+
+    DSTOOLS_DIR="/opt/didier"
+    URL='http://didierstevens.com/files/software/'
+
+    TOOLS=(
+        base64dump_V0_0_11.zip
+        emldump_V0_0_10.zip
+        jpegdump_V0_0_7.zip
+        oledump_V0_0_49.zip
+        pdf-parser_V0_7_4.zip
+        pdfid_v0_2_7.zip
+    )
+
+    if ! [ -d $DSTOOLS_DIR ]; then
+        sudo mkdir $DSTOOLS_DIR
+        for TOOL in "${TOOLS[@]}"; do
+            TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
+            sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
+            echo "[+] Downloading $TOOL"
+            wget -c -q "$URL""$TOOL" --no-hsts
+            sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
+
+            echo "[+] Adding $TOOL_NAME alias"
+            if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
+                echo "alias $TOOL_NAME='python2 $DSTOOLS_DIR/$TOOL_NAME/$TOOL_NAME.py'" >>~/.bashrc
+            fi
+            rm -f "$TOOL"
+        done
+    fi
+
+    XOR_TOOLS=(XORSearch_V1_11_3.zip XORStrings_V0_0_1.zip)
+    for TOOL in "${XOR_TOOLS[@]}"; do
+        TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
+        sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
+        echo "[+] Downloading $TOOL"
+        wget -c -q "$URL""$TOOL" --no-hsts
+        sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
+
+        echo "[+] Adding $TOOL_NAME alias"
+        if ! grep "alias xorstrings" ~/.bashrc >/dev/null; then
+            echo "alias xorstrings='$DSTOOLS_DIR/xorstrings/xorstrings'" >>~/.bashrc
+        fi
+
+        if ! grep "alias xorsearch-x86-s" ~/.bashrc >/dev/null; then
+            echo "alias xorsearch-x86-s='$DSTOOLS_DIR/xorsearch/xorsearch-x86-static'" >>~/.bashrc
+        fi
+
+        if ! grep "alias xorsearch-x86-d" ~/.bashrc >/dev/null; then
+            echo "alias xorsearch-x86-dc='$DSTOOLS_DIR/xorsearch/xorsearch-x86-dynamic'" >>~/.bashrc
+        fi
+
+        if ! grep "alias xorsearch-x64-s" ~/.bashrc >/dev/null; then
+            echo "alias xorsearch-x64-s='$DSTOOLS_DIR/xorsearch/xorsearch-x64-static'" >>~/.bashrc
+        fi
+
+        if ! grep "alias xorsearch-x64-d" ~/.bashrc >/dev/null; then
+            echo "alias xorsearch-x64-d='$DSTOOLS_DIR/xorsearch/xorsearch-x64-dynamic'" >>~/.bashrc
+        fi
+        rm -f "$TOOL"
+    done
+    # xorstrings clean-up
+    sudo gcc -w $DSTOOLS_DIR/xorstrings/XORStrings.c -o $DSTOOLS_DIR/xorstrings/xorstrings
+    sudo rm -rf $DSTOOLS_DIR/xorstrings/OSX $DSTOOLS_DIR/xorstrings/XORStrings.c $DSTOOLS_DIR/xorstrings/xorstrings.exe
+    sudo chown "$USER":"$USER" $DSTOOLS_DIR/xorstrings/xorstrings
+
+    # xorsearch clean-up
+    sudo mv $DSTOOLS_DIR/xorsearch/Linux/* $DSTOOLS_DIR/xorsearch/ && sudo rm -rf $DSTOOLS_DIR/xorsearch/Linux/
+    sudo rm -rf $DSTOOLS_DIR/xorsearch/OSX $DSTOOLS_DIR/xorsearch/Windows/ $DSTOOLS_DIR/xorsearch/xorsearch.exe $DSTOOLS_DIR/xorsearch/XORSearch.c
+    sudo chown "$USER":"$USER" $DSTOOLS_DIR/xorsearch/xorsearch-x*
+    chmod +x $DSTOOLS_DIR/xorsearch/xorsearch-x*
 }
 
 # setup paths
@@ -397,21 +510,6 @@ setup_paths() {
     PROCESSING "[+] Forcing color prompt in ~/.bashrc"
     if ! grep "export PS1" ~/.bashrc; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Adding dirsearch alias"
-    if ! grep "alias dirsearch" ~/.bashrc; then
-        echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Adding sqlmap alias"
-    if ! grep "alias sqlmap" ~/.bashrc; then
-        echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
-    fi
-
-    PROCESSING "[+] Adding volatility3 alias"
-    if ! grep "alias vol3" ~/.bashrc; then
-        echo "alias vol3='python3 /opt/volatility3/vol.py'" >>~/.bashrc
     fi
 
     PROCESSING "[+] Adding xclip alias"
@@ -516,7 +614,6 @@ remove_bpdirs() {
 replace_term() {
     # replace default terminal emulator with terminator
     if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
-        PROCESSING "[+] Setting terminator as the default terminal emulator"
         CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
         sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
         sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
@@ -555,6 +652,9 @@ clean_up() {
     PROCESSING "[+] Installing optional packages"
     install_opt_pkgs
 
+    PROCESSING "[+] Installing Didier's Tools"
+    didier_tools
+
     PROCESSING "[+] Setting up shell and paths"
     setup_paths
 
@@ -567,6 +667,7 @@ clean_up() {
     PROCESSING "[+] Removing boilerplate home directories"
     remove_bpdirs
 
+    PROCESSING "[+] Setting terminator as the default terminal emulator"
     replace_term
 
     clean_up
