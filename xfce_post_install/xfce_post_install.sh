@@ -640,7 +640,7 @@ clean_up() {
 
 # Processing Stage
 {
-    INFO "[-] Waiting for lock release"
+    INFO "[-] Waiting for lock release...this can take a while"
     apt_wait
 
     PROCESSING "[+] Updating repositories"
