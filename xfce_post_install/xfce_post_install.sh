@@ -363,7 +363,7 @@ install_opt_pkgs() {
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
                         sudo systemctl start vncserver-x11-serviced.service
-                        sudo systemctl enable vncserver-x11-serviced.service
+                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
                     fi
                 fi
             fi
