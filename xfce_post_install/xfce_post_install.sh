@@ -396,7 +396,7 @@ install_opt_pkgs() {
                 sudo apt-get install code -y
                 # rm vscode sources list to avoide conflict
                 sudo rm /etc/apt/sources.list.d/vscode.list
-                
+
                 # intall option
                 # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
                 # sudo dpkg -i vscode.deb
@@ -502,7 +502,6 @@ didier_tools() {
 }
 
 install_ruby_gems() {
-    PROCESSING "[+] Installing Ruby Gems"
     GEMS=(
         therubyracer
         origami
