@@ -140,6 +140,7 @@ install_pkgs() {
         scalpel
         scite
         sleuthkit
+        snapd
         software-properties-common
         sqlite
         sqlitebrowser
@@ -214,7 +215,6 @@ install_opt_pkgs() {
         docker
         ghidra
         jd-gui
-        snapd
         sqlmap
         stegsolve
         sublime
@@ -308,14 +308,6 @@ install_opt_pkgs() {
             fi
 
             ############################
-            #   snapd
-            ############################
-            if [[ $pkg == "snapd" ]]; then
-                PROCESSING "[+] Installing Snap"
-                sudo apt-get -qq install snapd -y
-            fi
-
-            ############################
             #  stegsolve
             ############################
             if [[ $pkg == "stegsolve" ]]; then
@@ -404,6 +396,7 @@ install_opt_pkgs() {
                 sudo apt-get install code -y
                 # rm vscode sources list to avoide conflict
                 sudo rm /etc/apt/sources.list.d/vscode.list
+                
                 # intall option
                 # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
                 # sudo dpkg -i vscode.deb
