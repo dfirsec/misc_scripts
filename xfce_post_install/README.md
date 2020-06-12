@@ -53,7 +53,7 @@ Command:  oledump
 Command:  pdf-parser
 ```
 
-**pdfid**: PDF triage:
+**pdfid**: PDF triage
 ```text
 Command:   pdfid
 ```
