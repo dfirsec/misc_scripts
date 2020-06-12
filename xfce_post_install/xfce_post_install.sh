@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# DFIRSec (@pulsecode)
+
 # Credit: JohnHammond
 # https://github.com/JohnHammond/ignition_key/blob/master/ignition_key.sh
 
@@ -51,7 +53,7 @@ apt_wait() {
 
 update_sys() {
     sudo apt-get update
-    sudo apt-get upgrade -y
+    sudo apt-get -qq upgrade -y
     sudo apt-get autoremove -y
 }
 
@@ -408,7 +410,7 @@ install_opt_pkgs() {
                 sudo add-apt-repository ppa:wireshark-dev/stable
                 sudo apt-get update
                 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-                sudo DEBIAN_FRONTEND=noninteractive apt-get -y install wireshark
+                sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
                 unset DEBIAN_FRONTEND
             fi
         else
@@ -418,16 +420,6 @@ install_opt_pkgs() {
 }
 
 didier_tools() {
-    # TOOLS
-    # Extract base64 strings from file: base64dump_V0_0_9.zip
-    # Analyze MIME files: emldump_V0_0_9.zip
-    # JPEG file analysis tool: jpegdump_V0_0_7.zip
-    # Analyze OLE files (Compound Binary Files): oledump_V0_0_9.zip
-    # PDF analysis: pdf-parser_V0_7_4.zip
-    # PDF triage: pdfid_v0_2_7.zip
-    # Bruteforce a file for XOR, ROL, ROT, SHIFT...encoding and search for a string: XORSearch_V1_9_2.zip
-    # Bruteforce a file for XOR, ROL, ROT, SHIFT...encoding and dump strings: XORStrings_V0_0_1.zip
-
     DSTOOLS_DIR="/opt/didier"
     URL='http://didierstevens.com/files/software/'
 
@@ -487,6 +479,7 @@ didier_tools() {
         fi
         rm -f "$TOOL"
     done
+
     # xorstrings clean-up
     sudo gcc -w $DSTOOLS_DIR/xorstrings/XORStrings.c -o $DSTOOLS_DIR/xorstrings/xorstrings
     sudo rm -rf $DSTOOLS_DIR/xorstrings/OSX $DSTOOLS_DIR/xorstrings/XORStrings.c $DSTOOLS_DIR/xorstrings/xorstrings.exe
