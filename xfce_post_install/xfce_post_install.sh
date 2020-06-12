@@ -53,7 +53,7 @@ apt_wait() {
 
 update_sys() {
     sudo apt-get update
-    sudo apt-get -qq upgrade -y
+    sudo apt-get -qq upgrade -y 2>dev/null
     sudo apt-get autoremove -y
 }
 
@@ -423,8 +423,8 @@ snap_tools() {
     SNAP_PKGS=(spotify volatility-phocean)
     sudo snap install "${SNAP_PKGS[@]}"
     PROCESSING "[+] Adding volatility alias"
-    if ! grep "alias vol" ~/.bashrc >/dev/null; then
-        echo "alias vol='volatility-phocean.volatility'" >>~/.bashrc
+    if ! grep "alias vol2" ~/.bashrc >/dev/null; then
+        echo "alias vol2='volatility-phocean.volatility'" >>~/.bashrc
     fi
 }
 
