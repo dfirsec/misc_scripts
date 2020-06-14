@@ -27,7 +27,7 @@ INFO() {
 }
 
 PROCESSING() {
-    echo -e "\n${PROCESSING}${1}${RESET}"
+    echo -e "${PROCESSING}${1}${RESET}"
 }
 
 # check if ran as sudo
@@ -36,8 +36,22 @@ if [ "$EUID" -eq 0 ]; then
     exit
 fi
 
+spin() {
+    sp="/|\\-/|\\-"
+    while :; do
+        for i in $(seq 0 7); do
+            echo -n "${sp:$i:1}"
+            echo -en "\010"
+            sleep 0.10
+        done
+    done
+}
+
 # Ref: https://gist.github.com/tedivm/e11ebfdc25dc1d7935a3d5640a1f1c90
 apt_wait() {
+    spin &
+    SPIN_PID=$!
+    trap 'kill -9 $SPIN_PID' $(seq 0 15)
     while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
         sleep 1
     done
@@ -49,18 +63,26 @@ apt_wait() {
             sleep 1
         done
     fi
+    kill -9 $SPIN_PID
 }
 
 update_sys() {
-    sudo apt-get update
-    sudo apt-get -qq upgrade -y 2>dev/null
-    sudo apt-get autoremove -y
+    spin &
+    SPIN_PID=$!
+    trap 'kill -9 $SPIN_PID' $(seq 0 15)
+    {
+        sudo apt-get -qq update
+        sudo apt-get -qq upgrade -y
+        sudo apt-get -qq autoremove -y
+    } >/dev/null
+    kill -9 $SPIN_PID
 }
 
 install_pkgs() {
     REQPKGS=(
         aeskeyfind
         apt-transport-https
+        autoconf
         automake
         binutils
         binwalk
@@ -75,7 +97,10 @@ install_pkgs() {
         curl
         default-jre
         dos2unix
+        dpkg-dev
+        emacs
         epic5
+        ewf-tools
         exfat-utils
         fcrackzip
         feh
@@ -84,11 +109,12 @@ install_pkgs() {
         flex
         font-manager
         foremost
+        g++
+        gcc
         gdb-minimal
         geany
         gimp
         git
-        git terminator
         gobuster
         golang-go
         graphviz
@@ -103,7 +129,12 @@ install_pkgs() {
         inspircd
         kazam
         lame
+        libewf-dev
         libimage-exiftool-perl
+        libncurses5-dev
+        libncursesw5-dev
+        libssl-dev
+        libxml2-dev
         ltrace
         mercurial
         mitmproxy
@@ -118,21 +149,24 @@ install_pkgs() {
         openssh-server
         openssl
         openvpn
-        p7zip-rar
         p7zip-full
+        p7zip-rar
+        patch
         pdfcrack
         pdfresurrect
         pdftk
         pinta
+        pyqt5-dev-tools
         python3-flask
+        python3-libewf
         python3-pip
+        python3-pyqt5
         python3-scapy
         python3-testresources
-        python3-pyqt5
-        pyqt5-dev-tools
-        qttools5-dev-tools
+        qemu
         qpdf
         qrencode
+        qttools5-dev-tools
         radare2
         rhino
         rsakeyfind
@@ -157,6 +191,7 @@ install_pkgs() {
         tcpflow
         tcpick
         tcpxtract
+        terminator
         tesseract-ocr
         tor
         torsocks
@@ -167,8 +202,9 @@ install_pkgs() {
         usbmount
         vagrant
         vbindiff
-        virtualenv
         virtualbox-qt
+        virtualenv
+        wget
         whois
         wxhexeditor
         xclip
@@ -180,9 +216,9 @@ install_pkgs() {
     )
 
     for req in "${REQPKGS[@]}"; do
-        if ! dpkg -s "$req" 2>/dev/null; then
+        if ! dpkg -s "$req" &>/dev/null; then
             PROCESSING "[+] Installing $req"
-            sudo apt-get install -y "$req"
+            sudo apt-get -qq install -y "$req" >/dev/null
         else
             echo "installed" >/dev/null
         fi
@@ -198,7 +234,7 @@ setup_paths() {
     fi
 
     PROCESSING "[+] Forcing color prompt in ~/.bashrc"
-    if ! grep "export PS1" ~/.bashrc; then
+    if ! grep "export PS1" ~/.bashrc >/dev/null; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
     fi
 
@@ -215,6 +251,7 @@ install_opt_pkgs() {
         docker
         ghidra
         jd-gui
+        plaso
         sqlmap
         stegsolve
         sublime
@@ -225,7 +262,7 @@ install_opt_pkgs() {
     )
 
     for pkg in "${OPTPKGS[@]}"; do
-        if ! dpkg -s "$pkg" 2>/dev/null; then
+        if ! dpkg -s "$pkg" &>/dev/null; then
             ############################
             #   atom
             ############################
@@ -233,8 +270,10 @@ install_opt_pkgs() {
                 PROCESSING "[+] Installing Atom"
                 wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
                 sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
-                sudo apt-get update
-                sudo apt-get install atom -y
+                {
+                    sudo apt-get -qq update
+                    sudo apt-get -qq install atom -y
+                } >/dev/null
             fi
 
             ############################
@@ -247,7 +286,7 @@ install_opt_pkgs() {
                     sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR 2>/dev/null 2>/dev/null
                 fi
                 PROCESSING "[+] Adding dirsearch alias"
-                if ! grep "alias dirsearch" ~/.bashrc; then
+                if ! grep "alias dirsearch" ~/.bashrc >/dev/null; then
                     echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
                 fi
             fi
@@ -257,7 +296,7 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "docker" ]]; then
                 PROCESSING "[+] Installing Docker"
-                sudo apt-get install docker.io -y
+                sudo apt-get -qq install docker.io -y
                 sudo groupadd docker 2>/dev/null
                 sudo usermod -aG docker "$LOGNAME"
             fi
@@ -270,9 +309,7 @@ install_opt_pkgs() {
                 GHIDRA_ICON='https://git.io/JfMiE'
                 GHIDRA_DESKTOP='https://git.io/JfMiz'
                 GHIDRA_VER=$(wget -O - -q https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
-                if [[ -d $GHIDRA_DIR ]]; then
-                    PROCESSING "ghidra already installed here: $GHIDRA_DIR"
-                else
+                if ! [[ -d $GHIDRA_DIR ]]; then
                     PROCESSING "[+] Installing ghidra"
                     wget -c -q "https://ghidra-sre.org/$GHIDRA_VER" --no-hsts
                     wget -q $GHIDRA_ICON --no-hsts -O ghidra.png
@@ -302,9 +339,28 @@ install_opt_pkgs() {
                 if ! command -v java-jar /opt/jd-gui/jd-gui.jar >/dev/null; then
                     PROCESSING "[+] Installing jd-gui"
                     wget -c -q https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.deb -O jd-gui.deb
-                    sudo dpkg -i jd-gui.deb
+                    sudo dpkg -i jd-gui.deb &>/dev/null
                     rm jd-gui.deb
                 fi
+            fi
+
+            ############################
+            #   plaso
+            ############################
+            if [[ $pkg == "plaso" ]]; then
+                PRE_REQ=(
+                    libewf
+                    libewf-python3
+                    python3-dfvfs
+                    python3-plaso
+                    plaso-tools
+                )
+
+                PROCESSING "[+] Adding GIFT repo for plaso install"
+                sudo add-apt-repository ppa:gift/stable -y &>/dev/null
+                sudo apt-get -qq update
+                PROCESSING "[+] Installing log2timeline/plaso"
+                sudo apt-get -qq install "${PRE_REQ[@]}" -y
             fi
 
             ############################
@@ -329,7 +385,7 @@ install_opt_pkgs() {
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR 2>/dev/null
                 fi
                 PROCESSING "[+] Adding sqlmap alias"
-                if ! grep "alias sqlmap" ~/.bashrc; then
+                if ! grep "alias sqlmap" ~/.bashrc >/dev/null; then
                     echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
                 fi
             fi
@@ -349,15 +405,15 @@ install_opt_pkgs() {
             #   vnc
             ############################
             if [[ $pkg == "vnc" ]]; then
-                if ! sudo dpkg-query -l | grep realvnc; then
+                if ! sudo dpkg-query -l | grep realvnc >/dev/null; then
                     PROCESSING "[+] Installing Real VNC Viewer"
                     wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
-                    sudo dpkg -i vnc_viewer.deb
+                    sudo dpkg -i vnc_viewer.deb &>/dev/null
                     rm vnc_viewer.deb
 
                     PROCESSING "[+] Installing Real VNC Connect (Server)"
                     wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
-                    sudo dpkg -i vnc_server.deb
+                    sudo dpkg -i vnc_server.deb &>/dev/null
                     rm vnc_server.deb
 
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
@@ -378,7 +434,7 @@ install_opt_pkgs() {
                     sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR 2>/dev/null
                 fi
                 PROCESSING "[+] Adding volatility3 alias"
-                if ! grep "alias vol3" ~/.bashrc; then
+                if ! grep "alias vol3" ~/.bashrc >/dev/null; then
                     echo "alias vol3='sudo python3 /opt/volatility3/vol.py'" >>~/.bashrc
                 fi
             fi
@@ -389,17 +445,19 @@ install_opt_pkgs() {
             if [[ $pkg == "vscode" ]]; then
                 PROCESSING "[+] Installing vscode"
                 PROCESSING "[+] Importing the Microsoft GPG key"
-                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add - 2>/dev/null
+                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
                 PROCESSING "[+] Enabling the Visual Studio Code repository and install"
-                sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
-                sudo apt-get update
-                sudo apt-get install code -y
+                sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" &>/dev/null
+                sudo apt-get -qq update >/dev/null
+                sudo apt-get -qq install code -y
                 # rm vscode sources list to avoide conflict
-                sudo rm /etc/apt/sources.list.d/vscode.list
+                if [ -f /etc/apt/sources.list.d/vscode.list ]; then
+                    sudo rm /etc/apt/sources.list.d/vscode.list
+                fi
 
                 # intall option
                 # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
-                # sudo dpkg -i vscode.deb
+                # sudo dpkg -i vscode.deb &>/dev/null
             fi
 
             ############################
@@ -407,22 +465,22 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "wireshark" ]]; then
                 PROCESSING "[+] Installing wireshark"
-                sudo add-apt-repository ppa:wireshark-dev/stable
-                sudo apt-get update
+                yes '' | sudo add-apt-repository ppa:wireshark-dev/stable &>/dev/null
+                sudo apt-get -qq update
                 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-                sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
+                sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install wireshark -y
                 unset DEBIAN_FRONTEND
             fi
         else
-            echo "$pkg is already installed"
+            echo "$pkg is already installed" >/dev/null
         fi
     done
 }
 
 snap_tools() {
     SNAP_PKGS=(spotify volatility-phocean)
-    sudo snap install "${SNAP_PKGS[@]}"
-    PROCESSING "[+] Adding volatility alias"
+    sudo snap -qq install "${SNAP_PKGS[@]}"
+    PROCESSING "[+] Adding volatility2 alias"
     if ! grep "alias vol2" ~/.bashrc >/dev/null; then
         echo "alias vol2='volatility-phocean.volatility'" >>~/.bashrc
     fi
@@ -446,11 +504,11 @@ didier_tools() {
         for TOOL in "${TOOLS[@]}"; do
             TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
             sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-            echo "[+] Downloading $TOOL"
+            PROCESSING "[+] Downloading $TOOL"
             wget -c -q "$URL""$TOOL" --no-hsts
             sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
 
-            echo "[+] Adding $TOOL_NAME alias"
+            PROCESSING "[+] Adding $TOOL_NAME alias"
             if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
                 echo "alias $TOOL_NAME='python2 $DSTOOLS_DIR/$TOOL_NAME/$TOOL_NAME.py'" >>~/.bashrc
             fi
@@ -462,11 +520,11 @@ didier_tools() {
     for TOOL in "${XOR_TOOLS[@]}"; do
         TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
         sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-        echo "[+] Downloading $TOOL"
+        PROCESSING "[+] Downloading $TOOL"
         wget -c -q "$URL""$TOOL" --no-hsts
         sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
 
-        echo "[+] Adding $TOOL_NAME alias"
+        PROCESSING "[+] Adding $TOOL_NAME alias"
         if ! grep "alias xorstrings" ~/.bashrc >/dev/null; then
             echo "alias xorstrings='$DSTOOLS_DIR/xorstrings/xorstrings'" >>~/.bashrc
         fi
@@ -501,6 +559,24 @@ didier_tools() {
     chmod +x $DSTOOLS_DIR/xorsearch/xorsearch-x*
 }
 
+bulk_ext_install() {
+    spin &
+    SPIN_PID=$!
+    trap 'kill -9 $SPIN_PID' $(seq 0 15)
+
+    PROCESSING "[+] Cloning bulk_extractor repo"
+    sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ &>/dev/null
+    pushd /opt/bulk_extractor/ &>/dev/null || return
+    sudo chmod +x ./bootstrap.sh
+    sudo ./bootstrap.sh &>/dev/null
+    sudo ./configure --enable-silent-rules &>/dev/null
+    sudo make &>/dev/null
+    sudo make install &>/dev/null
+    popd &>/dev/null || return
+
+    kill -9 $SPIN_PID
+}
+
 install_ruby_gems() {
     GEMS=(
         therubyracer
@@ -508,9 +584,7 @@ install_ruby_gems() {
         passivedns-client
         pedump
     )
-    for GEM in "${GEMS[@]}"; do
-        sudo gem install "$GEM"
-    done
+    sudo gem install "${GEMS[@]}" >/dev/null
 }
 
 #  pip installations
@@ -568,10 +642,16 @@ install_py_mods() {
     )
 
     #check_installed=$(pip list | awk '{print $1}' | awk '{if(NR>2)print}')
-    sudo python3 -m pip install -U setuptools pip wheel
+    spin &
+    SPIN_PID=$!
+    trap 'kill -9 $SPIN_PID' $(seq 0 15)
+
+    sudo python3 -m pip -q install -U setuptools pip wheel
     for mod in "${MODULES[@]}"; do
-        sudo python3 -m pip install "$mod"
+        PROCESSING "[+] Installing Python module $mod"
+        sudo python3 -m pip -q install "$mod"
     done
+    kill -9 $SPIN_PID
 }
 
 # remove boilerplate directories
@@ -586,9 +666,6 @@ remove_bpdirs() {
     )
 
     for dir in "${BP_DIRS[@]}"; do
-        # if [ -d "$dir" ]; then
-        #     rmdir "$dir"
-        # fi
         [ -d "$dir" ] && rm -rf "$dir"
     done
 }
@@ -607,13 +684,13 @@ replace_term() {
 
 clean_up() {
     PROCESSING "[+] Fixing any broken installs"
-    sudo apt-get --fix-broken install
+    sudo apt-get -qq --fix-broken install
 
     PROCESSING "[+] Cleaning apt cache"
-    sudo apt-get clean
+    sudo apt-get -qq clean
 
     PROCESSING "[+] Removing old kernels"
-    sudo apt-get purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
+    sudo apt-get -qq purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
 
     PROCESSING "[+] Emptying the trash"
     rm -rf /home/*/.local/share/Trash/*/** 2>/dev/null
@@ -622,19 +699,20 @@ clean_up() {
 
 # Processing Stage
 {
-    INFO "[-] Waiting for lock release...this can take a while"
+    sudo test
+    INFO "Waiting for lock release"
     apt_wait
 
     PROCESSING "[+] Updating repositories"
     update_sys
 
-    PROCESSING "[+] Installing packages"
+    # install packages
     install_pkgs
 
     PROCESSING "[+] Setting up shell and paths"
     setup_paths
 
-    PROCESSING "[+] Installing optional packages"
+    # install optional packages"
     install_opt_pkgs
 
     PROCESSING "[+] Installing snap packages"
@@ -642,6 +720,9 @@ clean_up() {
 
     PROCESSING "[+] Installing Didier's tools"
     didier_tools
+
+    PROCESSING "[+] Installing bulk_extractor"
+    bulk_ext_install
 
     PROCESSING "[+] Installing Ruby Gems"
     install_ruby_gems
