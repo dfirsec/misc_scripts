@@ -23,7 +23,7 @@ SUCCESS() {
 }
 
 INFO() {
-    echo -e "\n${INFO}[INFO] ${1}${RESET}"
+    echo -e "\n${INFO}${1}${RESET}"
 }
 
 PROCESSING() {
@@ -237,17 +237,17 @@ install_pkgs() {
 # setup paths
 setup_paths() {
     # update $PATH for user-binaries (systemd-path user-binaries)
-    PROCESSING "[+] Updating path for user-binaries"
+    INFO "[+] Updating path for user-binaries"
     if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc >/dev/null; then
         echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
     fi
 
-    PROCESSING "[+] Forcing color prompt in ~/.bashrc"
+    INFO "[+] Forcing color prompt in ~/.bashrc"
     if ! grep "export PS1" ~/.bashrc >/dev/null; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
     fi
 
-    PROCESSING "[+] Adding xclip alias"
+    INFO "[+] Adding xclip alias"
     if ! grep "alias xclip" ~/.bashrc >/dev/null; then
         echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
     fi
@@ -278,9 +278,9 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "atom" ]]; then
                 PROCESSING "[+] Installing Atom"
-                wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
-                sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
                 {
+                    wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+                    sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
                     sudo apt-get -qq update
                     sudo apt-get -qq install atom -y
                 } >/dev/null 2>>$LOGFILE
@@ -290,8 +290,9 @@ install_opt_pkgs() {
             #   balena-etcher
             ############################
             if [[ $pkg == "balena-etcher" ]]; then
-                echo "deb https://deb.etcher.io stable etcher" | sudo tee /etc/apt/sources.list.d/balena-etcher.list
+                PROCESSING "[+] Installing Etcher"
                 {
+                    echo "deb https://deb.etcher.io stable etcher" | sudo tee /etc/apt/sources.list.d/balena-etcher.list
                     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
                     sudo apt-get -qq update && sudo apt-get -qq install balena-etcher-electron -y
                 } >/dev/null 2>>$LOGFILE
@@ -306,7 +307,7 @@ install_opt_pkgs() {
                     PROCESSING "[+] Installing dirsearch"
                     sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR >/dev/null 2>>$LOGFILE
                 fi
-                PROCESSING "[+] Adding dirsearch alias"
+                INFO "[+] Adding dirsearch alias"
                 if ! grep "alias dirsearch" ~/.bashrc >/dev/null; then
                     echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
                 fi
@@ -379,7 +380,7 @@ install_opt_pkgs() {
                     plaso-tools
                 )
 
-                PROCESSING "[+] Adding GIFT repo for plaso install"
+                INFO "[+] Adding GIFT repo for plaso install"
                 PROCESSING "[+] Installing log2timeline/plaso"
                 {
                     sudo add-apt-repository ppa:gift/stable -y
@@ -394,11 +395,11 @@ install_opt_pkgs() {
             if [[ $pkg == "stegsolve" ]]; then
                 if ! [ -f /opt/stegsolve/stegsolve.jar ]; then
                     sudo mkdir /opt/stegsolve/
-                    PROCESSING "[+] Downloading stegsolve.jar"
+                    INFO "[+] Downloading stegsolve.jar"
                     sudo wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O /opt/stegsolve/stegsolve.jar
                     sudo chmod +x /opt/stegsolve/stegsolve.jar
                     sudo chown "$USER":"$USER" /opt/stegsolve/stegsolve.jar
-                    PROCESSING "[+] Adding stegsolve alias"
+                    INFO "[+] Adding stegsolve alias"
                     if ! grep "alias stegsolve" ~/.bashrc >/dev/null; then
                         echo "alias stegsolve='/opt/stegsolve/stegsolve.jar'" >>~/.bashrc
                     fi
@@ -411,10 +412,10 @@ install_opt_pkgs() {
             if [[ $pkg == "sqlmap" ]]; then
                 SQLMAP_DIR="/opt/sqlmap"
                 if ! [ -d $SQLMAP_DIR ]; then
-                    PROCESSING "[+] Downloading sqlmap"
+                    INFO "[+] Downloading sqlmap"
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR >/dev/null 2>>$LOGFILE
                 fi
-                PROCESSING "[+] Adding sqlmap alias"
+                INFO "[+] Adding sqlmap alias"
                 if ! grep "alias sqlmap" ~/.bashrc >/dev/null; then
                     echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
                 fi
@@ -446,7 +447,7 @@ install_opt_pkgs() {
                     sudo dpkg -i vnc_server.deb >/dev/null 2>>$LOGFILE
                     rm vnc_server.deb
 
-                    PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
+                    INFO "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
                         {
                             sudo systemctl start vncserver-x11-serviced.service
@@ -462,10 +463,10 @@ install_opt_pkgs() {
             if [[ $pkg == "volatility3" ]]; then
                 VOL3_DIR="/opt/volatility3"
                 if ! [ -d $VOL3_DIR ]; then
-                    PROCESSING "[+] Downloading volatility3"
+                    INFO "[+] Downloading volatility3"
                     sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR >/dev/null 2>>$LOGFILE
                 fi
-                PROCESSING "[+] Adding volatility3 alias"
+                INFO "[+] Adding volatility3 alias"
                 if ! grep "alias vol3" ~/.bashrc >/dev/null; then
                     echo "alias vol3='sudo python3 /opt/volatility3/vol.py'" >>~/.bashrc
                 fi
@@ -476,10 +477,10 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "vscode" ]]; then
                 PROCESSING "[+] Installing vscode"
-                PROCESSING "[+] Importing the Microsoft GPG key"
-                wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-                PROCESSING "[+] Enabling the Visual Studio Code repository and install"
+                INFO "[+] Importing the Microsoft GPG key"
+                INFO"[+] Enabling the Visual Studio Code repository and install"
                 {
+                    wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
                     sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
                     sudo apt-get -qq update
                     sudo apt-get -qq install code -y
@@ -516,7 +517,7 @@ install_opt_pkgs() {
 snap_tools() {
     SNAP_PKGS=(spotify volatility-phocean)
     sudo snap install "${SNAP_PKGS[@]}" >/dev/null 2>>$LOGFILE
-    PROCESSING "[+] Adding volatility2 alias"
+    INFO "[+] Adding volatility2 alias"
     if ! grep "alias vol2" ~/.bashrc >/dev/null; then
         echo "alias vol2='volatility-phocean.volatility'" >>~/.bashrc
     fi
@@ -540,11 +541,11 @@ didier_tools() {
         for TOOL in "${TOOLS[@]}"; do
             TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
             sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-            PROCESSING "[+] Downloading $TOOL"
+            INFO "[+] Downloading $TOOL"
             wget -c -q "$URL""$TOOL" --no-hsts
             sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
 
-            PROCESSING "[+] Adding $TOOL_NAME alias"
+            INFO "[+] Adding $TOOL_NAME alias"
             if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
                 echo "alias $TOOL_NAME='python2 $DSTOOLS_DIR/$TOOL_NAME/$TOOL_NAME.py'" >>~/.bashrc
             fi
@@ -556,11 +557,12 @@ didier_tools() {
     for TOOL in "${XOR_TOOLS[@]}"; do
         TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
         sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-        PROCESSING "[+] Downloading $TOOL"
+        INFO "[+] Downloading $TOOL"
         wget -c -q "$URL""$TOOL" --no-hsts
+        PROCESSING "[+] Installing $TOOL_NAME"
         sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
 
-        PROCESSING "[+] Adding $TOOL_NAME alias"
+        INFO "[+] Adding $TOOL_NAME alias"
         if ! grep "alias xorstrings" ~/.bashrc >/dev/null; then
             echo "alias xorstrings='$DSTOOLS_DIR/xorstrings/xorstrings'" >>~/.bashrc
         fi
@@ -600,7 +602,7 @@ bulk_ext_install() {
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
 
-    PROCESSING "[+] Cloning bulk_extractor repo"
+    INFO "[+] Cloning bulk_extractor repo"
     sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE
     {
         pushd /opt/bulk_extractor/ || return
@@ -721,19 +723,19 @@ replace_term() {
 }
 
 clean_up() {
-    PROCESSING "[+] Fixing any broken installs"
+    INFO "[+] Fixing any broken installs"
     sudo apt-get -qq --fix-broken install
 
-    PROCESSING "[+] Cleaning apt cache"
+    INFO "[+] Cleaning apt cache"
     sudo apt-get -qq clean
 
-    PROCESSING "[+] Removing old kernels"
-    sudo apt-get -qq purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
+    INFO "[+] Removing old kernels"
+    sudo apt-get -qq purge "$(dpkg -l | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
 
-    PROCESSING "[+] Removing no longer required packages"
-    sudo apt-get -qq autoremove -y 2>>$LOGFILE
+    INFO "[+] Removing no longer required packages"
+    sudo apt-get -qq autoremove -y >/dev/null 2>>$LOGFILE
 
-    PROCESSING "[+] Emptying the trash"
+    INFO "[+] Emptying the trash"
     rm -rf /home/*/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
     rm -rf /root/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
 }
@@ -741,16 +743,16 @@ clean_up() {
 # Processing Stage
 {
     sudo test
-    INFO "Waiting for lock release"
+    INFO "[+] Waiting for lock release"
     apt_wait
 
-    PROCESSING "[+] Updating repositories"
+    INFO "[+] Updating repositories"
     update_sys
 
     # install packages
     install_pkgs
 
-    PROCESSING "[+] Setting up shell and paths"
+    INFO "[+] Setting up shell and paths"
     setup_paths
 
     # install optional packages"
@@ -774,13 +776,13 @@ clean_up() {
     PROCESSING "[+] Removing boilerplate home directories"
     remove_bpdirs
 
-    PROCESSING "[+] Setting terminator as the default terminal emulator"
+    INFO "[+] Setting terminator as the default terminal emulator"
     replace_term
 
     clean_up
 } 2>>$LOGFILE
 
-PROCESSING "[+] Updating bash prompt"
+INFO "[+] Updating bash prompt"
 
 SUCCESS "Check $LOGFILE for possible errors encountered"
 
