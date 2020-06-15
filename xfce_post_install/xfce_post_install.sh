@@ -602,15 +602,15 @@ bulk_ext_install() {
 
     PROCESSING "[+] Cloning bulk_extractor repo"
     sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE
-    pushd /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE || return
     {
+        pushd /opt/bulk_extractor/ || return
         sudo chmod +x ./bootstrap.sh
         sudo ./bootstrap.sh
         sudo ./configure --enable-silent-rules
         sudo make
         sudo make install
+        popd >/dev/null || return
     } >/dev/null 2>>~/$LOGFILE
-    popd >/dev/null 2>>$LOGFILE || return
 
     kill -9 $SPIN_PID
 }
@@ -730,12 +730,12 @@ clean_up() {
     PROCESSING "[+] Removing old kernels"
     sudo apt-get -qq purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
 
-    PROCESSING "Removing no longer required packages"
-    sudo apt-get -qq autoremove -y
+    PROCESSING "[+] Removing no longer required packages"
+    sudo apt-get -qq autoremove -y 2>>$LOGFILE
 
     PROCESSING "[+] Emptying the trash"
-    rm -rf /home/*/.local/share/Trash/*/** 2>/dev/null
-    rm -rf /root/.local/share/Trash/*/** 2>/dev/null
+    rm -rf /home/*/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
+    rm -rf /root/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
 }
 
 # Processing Stage
