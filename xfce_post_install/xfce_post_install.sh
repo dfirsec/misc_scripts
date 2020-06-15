@@ -619,10 +619,10 @@ bulk_ext_install() {
 
 install_ruby_gems() {
     GEMS=(
-        therubyracer
         origami
         passivedns-client
         pedump
+        therubyracer
     )
     sudo gem install "${GEMS[@]}" >/dev/null 2>>$LOGFILE
 }
