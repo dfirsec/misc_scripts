@@ -52,6 +52,9 @@ apt_wait() {
     spin &
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
+    sudo rm /var/lib/apt/lists/lock
+    sudo rm /var/lib/dpkg/lock
+    sudo dpkg --configure -a
     while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
         sleep 1
     done
@@ -74,7 +77,7 @@ update_sys() {
         sudo apt-get -qq update
         sudo apt-get -qq upgrade -y
         sudo apt-get -qq autoremove -y
-    } >/dev/null
+    } >/dev/null 2>>$LOGFILE
     kill -9 $SPIN_PID
 }
 
@@ -121,6 +124,7 @@ install_pkgs() {
         gtk2-engines
         guake
         hashcat
+        hashdeep
         hexedit
         ibus
         idle
@@ -218,7 +222,7 @@ install_pkgs() {
     for req in "${REQPKGS[@]}"; do
         if ! dpkg -s "$req" &>/dev/null; then
             PROCESSING "[+] Installing $req"
-            sudo apt-get -qq install -y "$req" >/dev/null
+            sudo apt-get -qq install -y "$req" >/dev/null 2>>$LOGFILE
         else
             echo "installed" >/dev/null
         fi
@@ -273,7 +277,7 @@ install_opt_pkgs() {
                 {
                     sudo apt-get -qq update
                     sudo apt-get -qq install atom -y
-                } >/dev/null
+                } >/dev/null 2>>$LOGFILE
             fi
 
             ############################
@@ -283,7 +287,7 @@ install_opt_pkgs() {
                 DIRSRCH_DIR="/opt/dirsearch"
                 if ! [ -d $DIRSRCH_DIR ]; then
                     PROCESSING "[+] Installing dirsearch"
-                    sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR 2>/dev/null 2>/dev/null
+                    sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR >/dev/null 2>>$LOGFILE
                 fi
                 PROCESSING "[+] Adding dirsearch alias"
                 if ! grep "alias dirsearch" ~/.bashrc >/dev/null; then
@@ -296,9 +300,11 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "docker" ]]; then
                 PROCESSING "[+] Installing Docker"
-                sudo apt-get -qq install docker.io -y
-                sudo groupadd docker 2>/dev/null
-                sudo usermod -aG docker "$LOGNAME"
+                {
+                    sudo apt-get -qq install docker.io -y
+                    sudo groupadd docker
+                    sudo usermod -aG docker "$LOGNAME"
+                } >/dev/null 2>>$LOGFILE
             fi
 
             ############################
@@ -327,7 +333,7 @@ install_opt_pkgs() {
                             rm -f "$GHIDRA_VER"
                             sudo rm -rf /opt/ghidra_*
                             sudo rm -rf /opt/ghidra/ghidra_*
-                        } 2>/dev/null
+                        } >/dev/null 2>>$LOGFILE
                     fi
                 fi
             fi
@@ -339,7 +345,7 @@ install_opt_pkgs() {
                 if ! command -v java-jar /opt/jd-gui/jd-gui.jar >/dev/null; then
                     PROCESSING "[+] Installing jd-gui"
                     wget -c -q https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.deb -O jd-gui.deb
-                    sudo dpkg -i jd-gui.deb &>/dev/null
+                    sudo dpkg -i jd-gui.deb >/dev/null 2>>$LOGFILE
                     rm jd-gui.deb
                 fi
             fi
@@ -357,21 +363,28 @@ install_opt_pkgs() {
                 )
 
                 PROCESSING "[+] Adding GIFT repo for plaso install"
-                sudo add-apt-repository ppa:gift/stable -y &>/dev/null
-                sudo apt-get -qq update
                 PROCESSING "[+] Installing log2timeline/plaso"
-                sudo apt-get -qq install "${PRE_REQ[@]}" -y
+                {
+                    sudo add-apt-repository ppa:gift/stable -y
+                    sudo apt-get -qq update
+                    sudo apt-get -qq install "${PRE_REQ[@]}" -y
+                } >/dev/null 2>>$LOGFILE
             fi
 
             ############################
             #  stegsolve
             ############################
             if [[ $pkg == "stegsolve" ]]; then
-                if ! [ -f "stegsolve.jar" ]; then
+                if ! [ -f /opt/stegsolve/stegsolve.jar ]; then
+                    sudo mkdir /opt/stegsolve/
                     PROCESSING "[+] Downloading stegsolve.jar"
-                    wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O "stegsolve.jar"
-                    chmod +x "stegsolve.jar"
-
+                    sudo wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O /opt/stegsolve/stegsolve.jar
+                    sudo chmod +x /opt/stegsolve/stegsolve.jar
+                    sudo chown "$USER":"$USER" /opt/stegsolve/stegsolve.jar
+                    PROCESSING "[+] Adding stegsolve alias"
+                    if ! grep "alias stegsolve" ~/.bashrc >/dev/null; then
+                        echo "alias stegsolve='/opt/stegsolve/stegsolve.jar'" >>~/.bashrc
+                    fi
                 fi
             fi
 
@@ -382,7 +395,7 @@ install_opt_pkgs() {
                 SQLMAP_DIR="/opt/sqlmap"
                 if ! [ -d $SQLMAP_DIR ]; then
                     PROCESSING "[+] Downloading sqlmap"
-                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR 2>/dev/null
+                    sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR >/dev/null 2>>$LOGFILE
                 fi
                 PROCESSING "[+] Adding sqlmap alias"
                 if ! grep "alias sqlmap" ~/.bashrc >/dev/null; then
@@ -408,18 +421,20 @@ install_opt_pkgs() {
                 if ! sudo dpkg-query -l | grep realvnc >/dev/null; then
                     PROCESSING "[+] Installing Real VNC Viewer"
                     wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
-                    sudo dpkg -i vnc_viewer.deb &>/dev/null
+                    sudo dpkg -i vnc_viewer.deb >/dev/null 2>>$LOGFILE
                     rm vnc_viewer.deb
 
                     PROCESSING "[+] Installing Real VNC Connect (Server)"
                     wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
-                    sudo dpkg -i vnc_server.deb &>/dev/null
+                    sudo dpkg -i vnc_server.deb >/dev/null 2>>$LOGFILE
                     rm vnc_server.deb
 
                     PROCESSING "[+] Adding VNC Connect (Server) service to the default startup"
                     if ! systemctl is-active --quiet vncserver-x11-serviced; then
-                        sudo systemctl start vncserver-x11-serviced.service
-                        sudo systemctl enable vncserver-x11-serviced.service 2>/dev/null
+                        {
+                            sudo systemctl start vncserver-x11-serviced.service
+                            sudo systemctl enable vncserver-x11-serviced.service
+                        } >/dev/null 2>>$LOGFILE
                     fi
                 fi
             fi
@@ -431,7 +446,7 @@ install_opt_pkgs() {
                 VOL3_DIR="/opt/volatility3"
                 if ! [ -d $VOL3_DIR ]; then
                     PROCESSING "[+] Downloading volatility3"
-                    sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR 2>/dev/null
+                    sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR >/dev/null 2>>$LOGFILE
                 fi
                 PROCESSING "[+] Adding volatility3 alias"
                 if ! grep "alias vol3" ~/.bashrc >/dev/null; then
@@ -447,9 +462,11 @@ install_opt_pkgs() {
                 PROCESSING "[+] Importing the Microsoft GPG key"
                 wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
                 PROCESSING "[+] Enabling the Visual Studio Code repository and install"
-                sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" &>/dev/null
-                sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install code -y
+                {
+                    sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+                    sudo apt-get -qq update
+                    sudo apt-get -qq install code -y
+                } >/dev/null 2>>$LOGFILE
                 # rm vscode sources list to avoide conflict
                 if [ -f /etc/apt/sources.list.d/vscode.list ]; then
                     sudo rm /etc/apt/sources.list.d/vscode.list
@@ -465,10 +482,12 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "wireshark" ]]; then
                 PROCESSING "[+] Installing wireshark"
-                yes '' | sudo add-apt-repository ppa:wireshark-dev/stable &>/dev/null
-                sudo apt-get -qq update
                 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-                sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install wireshark -y
+                {
+                    yes '' | sudo add-apt-repository ppa:wireshark-dev/stable
+                    sudo apt-get -qq update
+                    sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install wireshark -y
+                } >/dev/null 2>>$LOGFILE
                 unset DEBIAN_FRONTEND
             fi
         else
@@ -479,7 +498,7 @@ install_opt_pkgs() {
 
 snap_tools() {
     SNAP_PKGS=(spotify volatility-phocean)
-    sudo snap -qq install "${SNAP_PKGS[@]}"
+    sudo snap install "${SNAP_PKGS[@]}" >/dev/null 2>>$LOGFILE
     PROCESSING "[+] Adding volatility2 alias"
     if ! grep "alias vol2" ~/.bashrc >/dev/null; then
         echo "alias vol2='volatility-phocean.volatility'" >>~/.bashrc
@@ -565,14 +584,16 @@ bulk_ext_install() {
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
 
     PROCESSING "[+] Cloning bulk_extractor repo"
-    sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ &>/dev/null
-    pushd /opt/bulk_extractor/ &>/dev/null || return
-    sudo chmod +x ./bootstrap.sh
-    sudo ./bootstrap.sh &>/dev/null
-    sudo ./configure --enable-silent-rules &>/dev/null
-    sudo make &>/dev/null
-    sudo make install &>/dev/null
-    popd &>/dev/null || return
+    sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE
+    pushd /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE || return
+    {
+        sudo chmod +x ./bootstrap.sh
+        sudo ./bootstrap.sh
+        sudo ./configure --enable-silent-rules
+        sudo make
+        sudo make install
+    } >/dev/null 2>>~/$LOGFILE
+    popd >/dev/null 2>>$LOGFILE || return
 
     kill -9 $SPIN_PID
 }
@@ -584,7 +605,7 @@ install_ruby_gems() {
         passivedns-client
         pedump
     )
-    sudo gem install "${GEMS[@]}" >/dev/null
+    sudo gem install "${GEMS[@]}" >/dev/null 2>>$LOGFILE
 }
 
 #  pip installations
@@ -692,6 +713,9 @@ clean_up() {
     PROCESSING "[+] Removing old kernels"
     sudo apt-get -qq purge "$(dpkg --list | grep -P -o "linux-image-\d\S+" | head -n-4)" -y 2>>$LOGFILE
 
+    PROCESSING "Removing no longer required packages"
+    sudo apt-get -qq autoremove -y
+
     PROCESSING "[+] Emptying the trash"
     rm -rf /home/*/.local/share/Trash/*/** 2>/dev/null
     rm -rf /root/.local/share/Trash/*/** 2>/dev/null
@@ -741,11 +765,7 @@ clean_up() {
 
 PROCESSING "[+] Updating bash prompt"
 
-if [ -s $LOGFILE ]; then
-    INFO "Check $LOGFILE for possible errors encountered"
-else
-    SUCCESS $LOGFILE
-fi
+SUCCESS "Check $LOGFILE for possible errors encountered"
 
 # refresh bash
 exec bash
