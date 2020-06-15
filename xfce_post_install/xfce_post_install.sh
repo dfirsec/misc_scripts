@@ -23,7 +23,7 @@ SUCCESS() {
 }
 
 INFO() {
-    echo -e "\n${INFO}${1}${RESET}"
+    echo -e "${INFO}${1}${RESET}"
 }
 
 PROCESSING() {
@@ -242,7 +242,7 @@ setup_paths() {
         echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
     fi
 
-    INFO "[+] Forcing color prompt in ~/.bashrc"
+    INFO "[+] Changing prompt format and color"
     if ! grep "export PS1" ~/.bashrc >/dev/null; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
     fi
@@ -679,6 +679,7 @@ install_py_mods() {
         virustotal3
         xortool
         yara-python
+        youtube-dl
     )
 
     #check_installed=$(pip list | awk '{print $1}' | awk '{if(NR>2)print}')
