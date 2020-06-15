@@ -713,14 +713,12 @@ remove_bpdirs() {
 
 replace_term() {
     # replace default terminal emulator with terminator
-    if echo "$XDG_CURRENT_DESKTOP" | grep -q XFCE; then
-        CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
-        sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
-        sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
-        sudo cp /usr/share/applications/terminator.desktop "$HOME"/Desktop
-        sudo chmod +x "$HOME"/Desktop/terminator.desktop
-        sudo chown "$USER":"$USER" "$HOME"/Desktop/terminator.desktop
-    fi
+    CURR_TERM=$(pstree -sA $$ | awk -F "---" '{ print $2 }')
+    sudo mv /usr/bin/"$CURR_TERM" /usr/bin/"$CURR_TERM".bak
+    sudo ln -s /usr/bin/terminator /usr/bin/"$CURR_TERM"
+    sudo cp /usr/share/applications/terminator.desktop "$HOME"/Desktop
+    sudo chmod +x "$HOME"/Desktop/terminator.desktop
+    sudo chown "$USER":"$USER" "$HOME"/Desktop/terminator.desktop
 }
 
 clean_up() {
@@ -756,7 +754,7 @@ clean_up() {
     INFO "[+] Setting up shell and paths"
     setup_paths
 
-    # install optional packages"
+    # install optional packages
     install_opt_pkgs
 
     INSTALL "[+] Installing snap packages"
