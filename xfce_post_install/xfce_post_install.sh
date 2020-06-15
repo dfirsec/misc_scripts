@@ -9,7 +9,7 @@
 ERROR=$(tput bold && tput setaf 1)
 SUCCESS=$(tput bold && tput setaf 2)
 INFO=$(tput bold && tput setaf 3)
-PROCESSING=$(tput bold && tput setaf 6)
+INSTALL=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
 
 LOGFILE="post-install.log"
@@ -26,8 +26,8 @@ INFO() {
     echo -e "${INFO}${1}${RESET}"
 }
 
-PROCESSING() {
-    echo -e "${PROCESSING}${1}${RESET}"
+INSTALL() {
+    echo -e "${INSTALL}${1}${RESET}"
 }
 
 # check if ran as sudo
@@ -226,7 +226,7 @@ install_pkgs() {
 
     for req in "${REQPKGS[@]}"; do
         if ! dpkg -s "$req" &>/dev/null; then
-            PROCESSING "[+] Installing $req"
+            INSTALL "[+] Installing $req"
             sudo apt-get -qq install -y "$req" >/dev/null 2>>$LOGFILE
         else
             echo "installed" >/dev/null
@@ -277,7 +277,7 @@ install_opt_pkgs() {
             #   atom
             ############################
             if [[ $pkg == "atom" ]]; then
-                PROCESSING "[+] Installing Atom"
+                INSTALL "[+] Installing Atom"
                 {
                     wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
                     sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
@@ -290,7 +290,7 @@ install_opt_pkgs() {
             #   balena-etcher
             ############################
             if [[ $pkg == "balena-etcher" ]]; then
-                PROCESSING "[+] Installing Etcher"
+                INSTALL "[+] Installing Etcher"
                 {
                     echo "deb https://deb.etcher.io stable etcher" | sudo tee /etc/apt/sources.list.d/balena-etcher.list
                     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
@@ -304,7 +304,7 @@ install_opt_pkgs() {
             if [[ $pkg == "dirsearch" ]]; then
                 DIRSRCH_DIR="/opt/dirsearch"
                 if ! [ -d $DIRSRCH_DIR ]; then
-                    PROCESSING "[+] Installing dirsearch"
+                    INSTALL "[+] Cloning dirsearch repo"
                     sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR >/dev/null 2>>$LOGFILE
                 fi
                 INFO "[+] Adding dirsearch alias"
@@ -317,7 +317,7 @@ install_opt_pkgs() {
             #   docker
             ############################
             if [[ $pkg == "docker" ]]; then
-                PROCESSING "[+] Installing Docker"
+                INSTALL "[+] Installing Docker"
                 {
                     sudo apt-get -qq install docker.io -y
                     sudo groupadd docker
@@ -334,7 +334,7 @@ install_opt_pkgs() {
                 GHIDRA_DESKTOP='https://git.io/JfMiz'
                 GHIDRA_VER=$(wget -O - -q https://www.ghidra-sre.org | grep 'Download Ghidra' | sed 's/.*href=.//' | sed 's/".*//')
                 if ! [[ -d $GHIDRA_DIR ]]; then
-                    PROCESSING "[+] Installing ghidra"
+                    INSTALL "[+] Installing ghidra"
                     wget -c -q "https://ghidra-sre.org/$GHIDRA_VER" --no-hsts
                     wget -q $GHIDRA_ICON --no-hsts -O ghidra.png
                     wget -q $GHIDRA_DESKTOP --no-hsts -O ghidra.desktop
@@ -361,7 +361,7 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "jd-gui" ]]; then
                 if ! command -v java-jar /opt/jd-gui/jd-gui.jar >/dev/null; then
-                    PROCESSING "[+] Installing jd-gui"
+                    INSTALL "[+] Installing jd-gui"
                     wget -c -q https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.deb -O jd-gui.deb
                     sudo dpkg -i jd-gui.deb >/dev/null 2>>$LOGFILE
                     rm jd-gui.deb
@@ -381,7 +381,7 @@ install_opt_pkgs() {
                 )
 
                 INFO "[+] Adding GIFT repo for plaso install"
-                PROCESSING "[+] Installing log2timeline/plaso"
+                INSTALL "[+] Installing log2timeline/plaso"
                 {
                     sudo add-apt-repository ppa:gift/stable -y
                     sudo apt-get -qq update
@@ -412,7 +412,7 @@ install_opt_pkgs() {
             if [[ $pkg == "sqlmap" ]]; then
                 SQLMAP_DIR="/opt/sqlmap"
                 if ! [ -d $SQLMAP_DIR ]; then
-                    INFO "[+] Downloading sqlmap"
+                    INSTALL "[+] Cloning sqlmap repo"
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR >/dev/null 2>>$LOGFILE
                 fi
                 INFO "[+] Adding sqlmap alias"
@@ -425,7 +425,7 @@ install_opt_pkgs() {
             #   sublime
             ############################
             if [[ $pkg == "sublime-text" ]]; then
-                PROCESSING "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
+                INSTALL "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
                 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
                 echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
                 sudo apt-get update
@@ -437,12 +437,12 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "vnc" ]]; then
                 if ! sudo dpkg-query -l | grep realvnc >/dev/null; then
-                    PROCESSING "[+] Installing Real VNC Viewer"
+                    INSTALL "[+] Installing Real VNC Viewer"
                     wget -q 'https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.113-Linux-x64.deb' -O vnc_viewer.deb
                     sudo dpkg -i vnc_viewer.deb >/dev/null 2>>$LOGFILE
                     rm vnc_viewer.deb
 
-                    PROCESSING "[+] Installing Real VNC Connect (Server)"
+                    INSTALL "[+] Installing Real VNC Connect (Server)"
                     wget -q 'https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.1-Linux-x64.deb' -O vnc_server.deb
                     sudo dpkg -i vnc_server.deb >/dev/null 2>>$LOGFILE
                     rm vnc_server.deb
@@ -463,7 +463,7 @@ install_opt_pkgs() {
             if [[ $pkg == "volatility3" ]]; then
                 VOL3_DIR="/opt/volatility3"
                 if ! [ -d $VOL3_DIR ]; then
-                    INFO "[+] Downloading volatility3"
+                    INSTALL "[+] Cloning volatility3 repo"
                     sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR >/dev/null 2>>$LOGFILE
                 fi
                 INFO "[+] Adding volatility3 alias"
@@ -476,7 +476,7 @@ install_opt_pkgs() {
             #   vscode
             ############################
             if [[ $pkg == "vscode" ]]; then
-                PROCESSING "[+] Installing vscode"
+                INSTALL "[+] Installing vscode"
                 INFO "[+] Importing the Microsoft GPG key"
                 INFO"[+] Enabling the Visual Studio Code repository and install"
                 {
@@ -499,7 +499,7 @@ install_opt_pkgs() {
             #   wireshark
             ############################
             if [[ $pkg == "wireshark" ]]; then
-                PROCESSING "[+] Installing wireshark"
+                INSTALL "[+] Installing wireshark"
                 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
                 {
                     yes '' | sudo add-apt-repository ppa:wireshark-dev/stable
@@ -559,7 +559,7 @@ didier_tools() {
         sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
         INFO "[+] Downloading $TOOL"
         wget -c -q "$URL""$TOOL" --no-hsts
-        PROCESSING "[+] Installing $TOOL_NAME"
+        INSTALL "[+] Installing $TOOL_NAME"
         sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
 
         INFO "[+] Adding $TOOL_NAME alias"
@@ -602,7 +602,7 @@ bulk_ext_install() {
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
 
-    INFO "[+] Cloning bulk_extractor repo"
+    INSTALL "[+] Cloning bulk_extractor repo"
     sudo git clone https://github.com/simsong/bulk_extractor.git /opt/bulk_extractor/ >/dev/null 2>>$LOGFILE
     {
         pushd /opt/bulk_extractor/ || return
@@ -689,7 +689,7 @@ install_py_mods() {
 
     sudo python3 -m pip -q install -U setuptools pip wheel
     for mod in "${MODULES[@]}"; do
-        PROCESSING "[+] Installing Python module $mod"
+        INSTALL "[+] Installing Python module $mod"
         sudo python3 -m pip -q install "$mod"
     done
     kill -9 $SPIN_PID
@@ -759,22 +759,22 @@ clean_up() {
     # install optional packages"
     install_opt_pkgs
 
-    PROCESSING "[+] Installing snap packages"
+    INSTALL "[+] Installing snap packages"
     snap_tools
 
-    PROCESSING "[+] Installing Didier's tools"
+    INSTALL "[+] Installing Didier's tools"
     didier_tools
 
-    PROCESSING "[+] Installing bulk_extractor"
+    INSTALL "[+] Installing bulk_extractor"
     bulk_ext_install
 
-    PROCESSING "[+] Installing Ruby Gems"
+    INSTALL "[+] Installing Ruby Gems"
     install_ruby_gems
 
-    PROCESSING "[+] Installing Python Modules"
+    INSTALL "[+] Installing Python Modules"
     install_py_mods
 
-    PROCESSING "[+] Removing boilerplate home directories"
+    INSTALL "[+] Removing boilerplate home directories"
     remove_bpdirs
 
     INFO "[+] Setting terminator as the default terminal emulator"
