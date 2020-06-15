@@ -52,9 +52,10 @@ apt_wait() {
     spin &
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
-    sudo rm /var/lib/apt/lists/lock
-    sudo rm /var/lib/dpkg/lock
-    sudo dpkg --configure -a
+    # sudo rm /var/lib/apt/lists/lock
+    # sudo rm /var/lib/dpkg/lock
+    # sudo rm /var/lib/dpkg/lock-frontend
+    # sudo dpkg --configure -a
     while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
         sleep 1
     done
@@ -85,6 +86,7 @@ install_pkgs() {
     REQPKGS=(
         aeskeyfind
         apt-transport-https
+        audacity
         autoconf
         automake
         binutils
@@ -96,6 +98,7 @@ install_pkgs() {
         bundler
         clamav
         clamav-daemon
+        clamtk
         cmake
         curl
         default-jre
@@ -143,6 +146,7 @@ install_pkgs() {
         mercurial
         mitmproxy
         mplayer
+        neofetch
         nginx
         ngrep
         nikto
@@ -208,6 +212,7 @@ install_pkgs() {
         vbindiff
         virtualbox-qt
         virtualenv
+        vlc
         wget
         whois
         wxhexeditor
@@ -251,6 +256,7 @@ setup_paths() {
 install_opt_pkgs() {
     OPTPKGS=(
         atom
+        balena-etcher
         dirsearch
         docker
         ghidra
@@ -277,6 +283,17 @@ install_opt_pkgs() {
                 {
                     sudo apt-get -qq update
                     sudo apt-get -qq install atom -y
+                } >/dev/null 2>>$LOGFILE
+            fi
+
+            ############################
+            #   balena-etcher
+            ############################
+            if [[ $pkg == "balena-etcher" ]]; then
+                echo "deb https://deb.etcher.io stable etcher" | sudo tee /etc/apt/sources.list.d/balena-etcher.list
+                {
+                    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+                    sudo apt-get -qq update && sudo apt-get -qq install balena-etcher-electron -y
                 } >/dev/null 2>>$LOGFILE
             fi
 
