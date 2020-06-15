@@ -774,7 +774,7 @@ clean_up() {
     INSTALL "[+] Installing Python Modules"
     install_py_mods
 
-    INSTALL "[+] Removing boilerplate home directories"
+    INFO "[+] Removing boilerplate home directories"
     remove_bpdirs
 
     INFO "[+] Setting terminator as the default terminal emulator"
