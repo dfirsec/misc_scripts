@@ -10,3 +10,4 @@ Script Name | Use Function
 `update_repo`| remove old commits from github repo
 `pass_gen.py`| password generator
 `ff_hist_viewer.py`| firefox history viewer
+`xfce_post_install`| custom post install script for Xubuntu
