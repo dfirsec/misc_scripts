@@ -10,10 +10,6 @@ import os
 import sys
 from pathlib import Path
 
-from colorama import Fore, Style, init
-
-init()
-
 # Ref: https://www.garykessler.net/library/file_sigs.html
 
 file_types = {
@@ -69,7 +65,7 @@ def main(path, select=None):
         else:
             for k, v in file_types.items():
                 if v in x[0]:
-                    print(f" {k.upper():6}{Fore.CYAN}{Style.RESET_ALL}{x[1]}")
+                    print(f" {k.upper():6}{x[1]}")
 
 
 if __name__ == '__main__':
