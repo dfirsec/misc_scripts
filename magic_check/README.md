@@ -37,7 +37,8 @@ file_types = {
 
 Check for all file formats (from list)
 ```text
-python check_magic.py d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules        
+python check_magic.py d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules      
+
  PDF   d:\Downloads\Ultimate_Guide_Arduino\Ultimate_Guide_Arduino_Sensors_Modules.pdf
  ZIP   d:\Downloads\Ultimate_Guide_Arduino\1 - DHT11_DHT22\Code\DHT_library.zip
  JFIF  d:\Downloads\Ultimate_Guide_Arduino\1 - DHT11_DHT22\Schematics\Schematics.jpg
@@ -52,6 +53,7 @@ python check_magic.py d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules
  Check by specified file format (from list)
  ```text
 python check_magic.py d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules -s zip
+
 d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules\1 - DHT11_DHT22\Code\DHT_library.zip
 d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules\13 - MRFC522 RFID\Code\RFID_Library.zip
 d:\Downloads\Ultimate_Guide_Arduino_Sensors_Modules\15 - nRF24L01\Code\RadioHead_Library.zip
