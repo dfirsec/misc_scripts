@@ -1,67 +1,53 @@
-@echo off
+#!/bin/bash
 
-set USER=%1
-set REPO=%2
+USER=$1
+REPO=$2
 
-rem Must provide at least two arguments
-if "%2" == "" (
-    echo.
-    echo Usage: %0 username repo
-    exit /b
-) else (
-    goto backup
-)
+usage() {
+    echo -e "\nUsage:\n${0} username repo \n"
+}
 
-:backup
-rem Check if 7zip is installed
-if not exist "C:\Program Files\7-Zip\7z.exe" (
-    echo.
-    echo Error: Script requires 7zip but it's not installed.
-    exit /b
-) else (
-    cls
-    echo.
-    set /p BACKUPDIR=Specify backup file path ^(e.g: %USERPROFILE%\^): 
-    set hr=%time:~0,2%
-    if %hr% lss 10 SET hr=0%hr:~1,1%
-    set TODAY=%date:~7,2%-%date:~4,2%-%date:~10,4%-%hr%%time:~3,2%%time:~6,2%%time:~9,2%
-    
-    rem Create repo backup
-    set SRC=%~dp0
-    echo [+] Backing up %SRC%
-    "C:\Program Files\7-Zip\7z.exe" a -tzip "%BACKUPDIR%\%REPO%_repo_%TODAY%.zip" %SRC% -mx5 >NUL 2>&1
-    echo [+] Backup finished!
-    goto gitrun
-)
+if [ $# -ne 2 ]; then
+    usage
+    exit 1
+fi
 
-:gitrun
-rem Remove all files from git cache
-echo [+] Initiating repo reset
-echo.
-call git rm -r --cached .
-call git add .
-call git commit -am "Refreshing .gitignore"
+# Check if zip is installed
+command -v zip >/dev/null 2>&1 || {
+    echo >&2 "Script requires zip and unzip but they're not installed -- use 'sudo apt install zip unzip'."
+    exit 1
+}
 
-rem Check out to a temporary branch:
-call git checkout --orphan TEMP_BRANCH
+# Create repo backup
+SRC=$PWD
+DATE=$(date +%d-%m-%Y)
+FILE_NAME=$(basename "$PWD")
 
-rem Add all the files:
-call git add -A
+echo "Backing up $SRC..."
+date
 
-rem Commit the changes:
-call git commit -am "Initial commit"
+zip -r "$FILE_NAME"-"$DATE".zip "$SRC"
+echo
+echo "Backup finished!"
+date
 
-rem Delete the old branch:
-call git branch -D master
+# Check out to a temporary branch:
+git checkout --orphan TEMP_BRANCH
 
-rem Rename the temporary branch to master:
-call git branch -m master
+# Add all the files:
+git add -A
 
-rem Switch to SSH:
-call git remote set-url origin git@github.com:%USER%/%REPO%.git
+# Commit the changes:
+git commit -am "Initial commit"
 
-rem Finally, force update to our repository:
-call git push -f origin master
+# Delete the old branch:
+git branch -D master
 
-echo.
-echo Done!
+# Rename the temporary branch to master:
+git branch -m master
+
+# Switch to SSH:
+git remote set-url origin git@github.com:"${USER}"/"$REPO".git
+
+# Finally, force update to our repository:
+git push -f origin master
