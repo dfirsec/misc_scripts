@@ -7,21 +7,17 @@ Script removes old commits from your github repo.
 
 \*nix systems require zip and unzip installed.
 
-```text
-sudo apt install zip unzip
-```
+```sudo apt install zip unzip```
 
 Windows systems requires 7zip installed.
 
-```https://www.7-zip.org/```
+https://www.7-zip.org/
 
 ### Step 1
 
 Clone your repository
 
-```text
-git clone https://github.com/<USER>/<REPO>.git
-```
+```git clone https://github.com/<USER>/<REPO>.git```
 
 ### Step 2
 
@@ -43,15 +39,13 @@ Copy the script ```update_repo.bat``` to your repository source directory.
 Run the script by providing your github username followed by the repository name.  
 
 #### *nix
-```text
-usage: ./update_git_repo.sh <USER> <REPO>
-```
+
+```usage: ./update_git_repo.sh <USER> <REPO>```
 
 #### Windows
 
-```text
-usage: ./update_git_repo.bat <USER> <REPO>
-```
+```usage: ./update_git_repo.bat <USER> <REPO>```
+
 -------------
 ## Note: 
 Recommend adding `*.sh` and `*.bat` to your .gitignore file so the script is not tracked and uploaded.
