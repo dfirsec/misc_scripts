@@ -23,7 +23,7 @@ if not exist "C:\Program Files\7-Zip\7z.exe" (
     echo.
     set /p BACKUPDIR=Specify backup file path ^(e.g: %USERPROFILE%\^): 
     set hr=%time:~0,2%
-    if %hr% lss 10 SET hr=0%hr:~1,1%
+    if "%hr%" lss 10 SET hr=0%hr:~1,1%
     set TODAY=%date:~7,2%-%date:~4,2%-%date:~10,4%-%hr%%time:~3,2%%time:~6,2%%time:~9,2%
     
     rem Create repo backup
