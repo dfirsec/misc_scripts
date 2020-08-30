@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
 formatbytes() {
-    b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,E,P,Y,Z}B)
+    b=${1:-0}
+    d=''
+    s=0
+    S=(Bytes {K,M,G,T,E,P,Y,Z}B)
     while ((b > 1024)); do
         d="$(printf ".%02d" $((b % 1024 * 100 / 1024)))"
         b=$((b / 1024))
-        (( s++ ))
+        ((s++))
     done
     echo "$b$d ${S[$s]} of space was cleaned up"
 }
@@ -13,7 +16,11 @@ formatbytes() {
 sudo -v
 
 # Keep-alive sudo until `mac_cleanup.sh` has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+while true; do
+    sudo -n true
+    sleep 60
+    kill -0 "$$" || exit
+done 2>/dev/null &
 
 preclean=$(df / | tail -1 | awk '{print $4}')
 
@@ -84,17 +91,17 @@ if type "brew" &>/dev/null; then
     echo -e '\e[38;5;82m[+]\e[0m' 'Cleanup Homebrew Cache...'
     brew cleanup -s &>/dev/null
     #brew cask cleanup &>/dev/null
-    rm -rfv $(brew --cache) &>/dev/null
+    rm -rfv "$(brew --cache)" &>/dev/null
     brew tap --repair &>/dev/null
 fi
 
-if type "gem" &> /dev/null; then
+if type "gem" &>/dev/null; then
     echo -e '\e[38;5;82m[+]\e[0m' 'Cleanup any old versions of gems'
     gem cleanup &>/dev/null
 fi
 
-if type "docker" &> /dev/null; then
-    rep=$(curl -s --unix-socket /var/run/docker.sock http://ping > /dev/null)
+if type "docker" &>/dev/null; then
+    rep=$(curl -s --unix-socket /var/run/docker.sock http://ping >/dev/null)
     status=$?
     if [ "$status" == "7" ]; then
         echo -e '\e[38;5;226m[-]\e[0m' 'Docker is not running'
@@ -106,15 +113,15 @@ fi
 
 if [ "$PYENV_VIRTUALENV_CACHE_PATH" ]; then
     echo -e '\e[38;5;82m[+]\e[0m' 'Removing Pyenv-VirtualEnv Cache...'
-    rm -rfv $PYENV_VIRTUALENV_CACHE_PATH &>/dev/null
+    rm -rfv "$PYENV_VIRTUALENV_CACHE_PATH" &>/dev/null
 fi
 
-if type "npm" &> /dev/null; then
+if type "npm" &>/dev/null; then
     echo -e '\e[38;5;82m[+]\e[0m' 'Cleanup npm cache...'
     npm cache clean --force
 fi
 
-if type "yarn" &> /dev/null; then
+if type "yarn" &>/dev/null; then
     echo -e '\e[38;5;82m[+]\e[0m' 'Cleanup Yarn Cache...'
     yarn cache clean --force
 fi
