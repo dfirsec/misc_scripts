@@ -12,7 +12,7 @@ if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
 else:
     base_path = sys.argv[1]
 
-outfile = f"empty_dirs_{base_path[0]}.txt"
+outfile = f"empty_dirs.txt"
 exclude = set(['Windows', 'Desktop'])
 
 f = open(outfile, 'w')
