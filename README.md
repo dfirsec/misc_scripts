@@ -5,7 +5,7 @@ Repo for miscellaneous scripts that may, or may not work for you. :smirk:
 Script Name | Use Function
 | ----- |:-----  
 `ff_hist_viewer.py`| firefox history viewer
-`find_empty` | scan for empty directories
+`find_empty.py` | scan for empty directories
 `install_rekall.sh` | commands to assist in installing rekall for memory forensics
 `mac_cleaner`| cleanup script I use on my own Mac
 `pass_gen.py`| password generator
