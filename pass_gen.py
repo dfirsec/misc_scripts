@@ -18,7 +18,7 @@ def str_gen(str_len):
 
 
 if len(sys.argv) < 2:
-    sys.exit(f"{Fore.RED}[ERROR]{Fore.RESET} Provide a password length.")
+    sys.exit(f"{Fore.RED}[ERROR]{Fore.RESET} Provide a password length")
 else:
     try:
         if int(sys.argv[1]):
