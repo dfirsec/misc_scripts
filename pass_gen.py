@@ -6,9 +6,7 @@ __description__ = "Python Password Generator"
 
 try:
     from colorama import Fore, init
-
-    # initialize colorama
-    init()
+    init()  # initialize colorama
 except ImportError:
     sys.exit("Please install colorama: pip install colorama --user")
 
