@@ -6,6 +6,7 @@ __description__ = "Python Password Generator"
 
 try:
     from colorama import Fore, init
+
     # initialize colorama
     init()
 except ImportError:
@@ -24,6 +25,6 @@ else:
         if int(sys.argv[1]):
             if int(sys.argv[1]) > 50:
                 sys.exit(f"{Fore.YELLOW}[WARNING]{Fore.RESET} Whew, that's too long!")  # nopep8
-            print(f"Password: {Fore.CYAN}{str_gen(sys.argv[1])}{Fore.RESET}"))
+            print(f"Password: {Fore.CYAN}{str_gen(sys.argv[1])}{Fore.RESET}")
     except ValueError:
         sys.exit(f"{Fore.RED}[ERROR]{Fore.RESET} Must use an integer")
