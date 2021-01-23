@@ -80,6 +80,8 @@ update_sys() {
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
     {
+        sudo dpkg –configure -a
+        sudo apt-get -qq clean
         sudo apt-get -qq update
         sudo apt-get -qq upgrade -y
         sudo apt-get -qq autoremove -y
@@ -483,7 +485,7 @@ install_opt_pkgs() {
             if [[ $pkg == "vscode" ]]; then
                 INSTALL "[+] Installing vscode"
                 SETUP_INFO "[+] Importing the Microsoft GPG key"
-                SETUP INFO "[+] Enabling the Visual Studio Code repository and install"
+                SETUP_INFO "[+] Enabling the Visual Studio Code repository and install"
                 {
                     wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add --no-tty -
                     sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
@@ -669,7 +671,7 @@ install_py_mods() {
     # ViperMonkey
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py --silent
     sudo python2 get-pip.py >/dev/null 2>>$LOGFILE
-    sudo python2 -m pip install -U https://github.com/decalage2/ViperMonkey/archive/master.zip
+    sudo python2 -m pip install -U https://github.com/decalage2/ViperMonkey/archive/master.zip >/dev/null 2>>$LOGFILE
     kill -9 $SPIN_PID
 }
 
