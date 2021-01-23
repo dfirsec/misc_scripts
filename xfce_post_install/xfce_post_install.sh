@@ -106,6 +106,7 @@ install_pkgs() {
         clamtk
         cmake
         curl
+        ddrescueview
         default-jre
         dos2unix
         dpkg-dev
@@ -122,6 +123,7 @@ install_pkgs() {
         foremost
         g++
         gcc
+        gddrescue
         gdb-minimal
         geany
         gimp
@@ -146,11 +148,16 @@ install_pkgs() {
         libncurses5-dev
         libncursesw5-dev
         libssl-dev
+        libtool
+        libvhdi-utils
         libxml2-dev
         ltrace
+        memdump
         mercurial
         mitmproxy
+        mono-devel
         mplayer
+        myrescue
         neofetch
         nginx
         ngrep
@@ -201,6 +208,7 @@ install_pkgs() {
         subversion
         sysdig
         taskwarrior
+        testdisk
         tcpdump
         tcpflow
         tcpick
@@ -262,12 +270,15 @@ setup_paths() {
 install_opt_pkgs() {
     OPTPKGS=(
         atom
+        autotimeliner
         balena-etcher
         dirsearch
         docker
         ghidra
         jd-gui
+        networkminer
         plaso
+        recuperabit
         sqlmap
         stegsolve
         sublime
@@ -290,6 +301,21 @@ install_opt_pkgs() {
                     sudo apt-get -qq update
                     sudo apt-get -qq install atom -y
                 } >/dev/null 2>>$LOGFILE
+            fi
+            
+            ############################
+            #   autotimeliner
+            ############################
+            if [[ $pkg == "autotimeliner" ]]; then
+                AUTOTIMELINER_DIR="/opt/autotimeliner"
+                if ! [ -d $AUTOTIMELINER_DIR ]; then
+                    INSTALL "[+] Cloning autotimeliner repo"
+                    sudo git clone https://github.com/andreafortuna/autotimeliner.git $AUTOTIMELINER_DIR >/dev/null 2>>$LOGFILE
+                fi
+                SETUP_INFO "[+] Adding autotimeliner alias"
+                if ! grep "alias autotimeliner" ~/.bashrc >/dev/null; then
+                    echo "alias autotimeliner='python /opt/autotimeliner/autotimeline.py.py'" >>~/.bashrc
+                fi
             fi
 
             ############################
@@ -375,6 +401,25 @@ install_opt_pkgs() {
             fi
 
             ############################
+            #   networkminer
+            ############################
+            if [[ $pkg == "networkminer" ]]; then
+                NETMINER_DIR="/opt/NetworkMiner*"
+                if ! [ -d "$NETMINER_DIR" ]; then
+                    INSTALL "[+] Installing networkminer"
+                    wget -c -q https://www.netresec.com/?download=NetworkMiner -O /tmp/nm.zip >/dev/null 2>>$LOGFILE
+                    sudo unzip -q /tmp/nm.zip -d /opt/
+                    sudo chmod +x "$NETMINER_DIR"/NetworkMiner.exe
+                    sudo chmod -R go+w "$NETMINER_DIR"AssembledFiles/
+                    sudo chmod -R go+w "$NETMINER_DIR"Captures/
+                fi
+                SETUP_INFO "[+] Adding networkminer alias"
+                if ! grep "alias networkminer" ~/.bashrc >/dev/null; then
+                    echo "alias networkminer='mono $NETMINER_DIR/NetworkMiner.exe --noupdatecheck'" >>~/.bashrc
+                fi
+            fi
+
+            ############################
             #   plaso
             ############################
             if [[ $pkg == "plaso" ]]; then
@@ -393,6 +438,21 @@ install_opt_pkgs() {
                     sudo apt-get -qq update
                     sudo apt-get -qq install "${PRE_REQ[@]}" -y
                 } >/dev/null 2>>$LOGFILE
+            fi
+
+            ############################
+            #   recuperabit
+            ############################
+            if [[ $pkg == "recuperabit" ]]; then
+                RECUBIT_DIR="/opt/recuperabit"
+                if ! [ -d $RECUBIT_DIR ]; then
+                    INSTALL "[+] Cloning recuperabit repo"
+                    sudo git clone https://github.com/Lazza/RecuperaBit.git $RECUBIT_DIR >/dev/null 2>>$LOGFILE
+                fi
+                SETUP_INFO "[+] Adding recuperabit alias"
+                if ! grep "alias recuperabit" ~/.bashrc >/dev/null; then
+                    echo "alias recuperabit='python3 /opt/recuperabit/main.py'" >>~/.bashrc
+                fi
             fi
 
             ############################
@@ -650,6 +710,7 @@ install_py_mods() {
         requests
         scipy
         shodan
+        sqlparse
         uTidylib
         virustotal3
         xortool
