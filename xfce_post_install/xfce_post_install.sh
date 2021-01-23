@@ -9,6 +9,7 @@
 ERROR=$(tput bold && tput setaf 1)
 SUCCESS=$(tput bold && tput setaf 2)
 INFO=$(tput bold && tput setaf 3)
+SETUP_INFO=$(tput bold && tput setaf 5)
 INSTALL=$(tput bold && tput setaf 6)
 RESET=$(tput sgr0)
 
@@ -24,6 +25,10 @@ SUCCESS() {
 
 INFO() {
     echo -e "${INFO}${1}${RESET}"
+}
+
+SETUP_INFO() {
+    echo -e "${SETUP_INFO}${1}${RESET}"
 }
 
 INSTALL() {
@@ -93,7 +98,6 @@ install_pkgs() {
         binwalk
         bison
         bless
-        bsdgames
         build-essential
         bundler
         clamav
@@ -165,6 +169,7 @@ install_pkgs() {
         pdftk
         pinta
         pyqt5-dev-tools
+        python2-dev
         python3-flask
         python3-libewf
         python3-pip
@@ -237,17 +242,17 @@ install_pkgs() {
 # setup paths
 setup_paths() {
     # update $PATH for user-binaries (systemd-path user-binaries)
-    INFO "[+] Updating path for user-binaries"
+    SETUP_INFO "[+] Updating path for user-binaries"
     if ! grep "export PATH=\$HOME/.local/bin/:\$PATH" ~/.bashrc >/dev/null; then
         echo "export PATH=\$HOME/.local/bin/:\$PATH" >>~/.bashrc
     fi
 
-    INFO "[+] Changing prompt format and color"
+    SETUP_INFO "[+] Changing prompt format and color"
     if ! grep "export PS1" ~/.bashrc >/dev/null; then
         echo "export PS1='${debian_chroot:+($debian_chroot)}\[\033[38;5;11m\]\u\[$(tput sgr0)\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]\[$(tput sgr0)\]: \[$(tput sgr0)\]'" >>~/.bashrc
     fi
 
-    INFO "[+] Adding xclip alias"
+    SETUP_INFO "[+] Adding xclip alias"
     if ! grep "alias xclip" ~/.bashrc >/dev/null; then
         echo "alias xclip='xclip -selection clipboard'" >>~/.bashrc
     fi
@@ -279,7 +284,7 @@ install_opt_pkgs() {
             if [[ $pkg == "atom" ]]; then
                 INSTALL "[+] Installing Atom"
                 {
-                    wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+                    wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add --no-tty -
                     sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
                     sudo apt-get -qq update
                     sudo apt-get -qq install atom -y
@@ -293,7 +298,7 @@ install_opt_pkgs() {
                 INSTALL "[+] Installing Etcher"
                 {
                     echo "deb https://deb.etcher.io stable etcher" | sudo tee /etc/apt/sources.list.d/balena-etcher.list
-                    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+                    sudo apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
                     sudo apt-get -qq update && sudo apt-get -qq install balena-etcher-electron -y
                 } >/dev/null 2>>$LOGFILE
             fi
@@ -307,7 +312,7 @@ install_opt_pkgs() {
                     INSTALL "[+] Cloning dirsearch repo"
                     sudo git clone https://github.com/maurosoria/dirsearch.git $DIRSRCH_DIR >/dev/null 2>>$LOGFILE
                 fi
-                INFO "[+] Adding dirsearch alias"
+                SETUP_INFO "[+] Adding dirsearch alias"
                 if ! grep "alias dirsearch" ~/.bashrc >/dev/null; then
                     echo "alias dirsearch='python3 /opt/dirsearch/dirsearch.py'" >>~/.bashrc
                 fi
@@ -380,7 +385,7 @@ install_opt_pkgs() {
                     plaso-tools
                 )
 
-                INFO "[+] Adding GIFT repo for plaso install"
+                SETUP_INFO "[+] Adding GIFT repo for plaso install"
                 INSTALL "[+] Installing log2timeline/plaso"
                 {
                     sudo add-apt-repository ppa:gift/stable -y
@@ -395,11 +400,11 @@ install_opt_pkgs() {
             if [[ $pkg == "stegsolve" ]]; then
                 if ! [ -f /opt/stegsolve/stegsolve.jar ]; then
                     sudo mkdir /opt/stegsolve/
-                    INFO "[+] Downloading stegsolve.jar"
+                    SETUP_INFO "[+] Downloading stegsolve.jar"
                     sudo wget -q "http://www.caesum.com/handbook/Stegsolve.jar" -O /opt/stegsolve/stegsolve.jar
                     sudo chmod +x /opt/stegsolve/stegsolve.jar
                     sudo chown "$USER":"$USER" /opt/stegsolve/stegsolve.jar
-                    INFO "[+] Adding stegsolve alias"
+                    SETUP_INFO "[+] Adding stegsolve alias"
                     if ! grep "alias stegsolve" ~/.bashrc >/dev/null; then
                         echo "alias stegsolve='/opt/stegsolve/stegsolve.jar'" >>~/.bashrc
                     fi
@@ -415,7 +420,7 @@ install_opt_pkgs() {
                     INSTALL "[+] Cloning sqlmap repo"
                     sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git $SQLMAP_DIR >/dev/null 2>>$LOGFILE
                 fi
-                INFO "[+] Adding sqlmap alias"
+                SETUP_INFO "[+] Adding sqlmap alias"
                 if ! grep "alias sqlmap" ~/.bashrc >/dev/null; then
                     echo "alias sqlmap='python3 /opt/sqlmap/sqlmap.py'" >>~/.bashrc
                 fi
@@ -426,7 +431,7 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "sublime-text" ]]; then
                 INSTALL "[+] Installing Sublime Text" # according to https://www.sublimetext.com/docs/3/linux_repositories.html-
-                wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
+                wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add --no-tty -
                 echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
                 sudo apt-get update
                 sudo apt-get install sublime-text -y
@@ -466,7 +471,7 @@ install_opt_pkgs() {
                     INSTALL "[+] Cloning volatility3 repo"
                     sudo git clone https://github.com/volatilityfoundation/volatility3.git $VOL3_DIR >/dev/null 2>>$LOGFILE
                 fi
-                INFO "[+] Adding volatility3 alias"
+                SETUP_INFO "[+] Adding volatility3 alias"
                 if ! grep "alias vol3" ~/.bashrc >/dev/null; then
                     echo "alias vol3='sudo python3 /opt/volatility3/vol.py'" >>~/.bashrc
                 fi
@@ -477,10 +482,10 @@ install_opt_pkgs() {
             ############################
             if [[ $pkg == "vscode" ]]; then
                 INSTALL "[+] Installing vscode"
-                INFO "[+] Importing the Microsoft GPG key"
-                INFO"[+] Enabling the Visual Studio Code repository and install"
+                SETUP_INFO "[+] Importing the Microsoft GPG key"
+                SETUP INFO "[+] Enabling the Visual Studio Code repository and install"
                 {
-                    wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+                    wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add --no-tty -
                     sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
                     sudo apt-get -qq update
                     sudo apt-get -qq install code -y
@@ -517,84 +522,53 @@ install_opt_pkgs() {
 snap_tools() {
     SNAP_PKGS=(spotify volatility-phocean)
     sudo snap install "${SNAP_PKGS[@]}" >/dev/null 2>>$LOGFILE
-    INFO "[+] Adding volatility2 alias"
+    SETUP_INFO "[+] Adding volatility2 alias"
     if ! grep "alias vol2" ~/.bashrc >/dev/null; then
         echo "alias vol2='volatility-phocean.volatility'" >>~/.bashrc
     fi
 }
 
 didier_tools() {
+    spin &
+    SPIN_PID=$!
+    trap 'kill -9 $SPIN_PID' $(seq 0 15)
+
     DSTOOLS_DIR="/opt/didier"
-    URL='http://didierstevens.com/files/software/'
-
-    TOOLS=(
-        base64dump_V0_0_11.zip
-        emldump_V0_0_10.zip
-        jpegdump_V0_0_7.zip
-        oledump_V0_0_49.zip
-        pdf-parser_V0_7_4.zip
-        pdfid_v0_2_7.zip
-    )
-
     if ! [ -d $DSTOOLS_DIR ]; then
         sudo mkdir $DSTOOLS_DIR
-        for TOOL in "${TOOLS[@]}"; do
-            TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
-            sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-            INFO "[+] Downloading $TOOL"
-            wget -c -q "$URL""$TOOL" --no-hsts
-            sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
+        INSTALL "[+] Cloning DidierStevensSuite repo"
+        sudo git clone https://github.com/DidierStevens/DidierStevensSuite.git $DSTOOLS_DIR >/dev/null 2>>$LOGFILE
 
-            INFO "[+] Adding $TOOL_NAME alias"
-            if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
-                echo "alias $TOOL_NAME='python2 $DSTOOLS_DIR/$TOOL_NAME/$TOOL_NAME.py'" >>~/.bashrc
+        for TOOL in "$DSTOOLS_DIR"/*; do
+            if [[ $TOOL == *.py ]]; then
+                SETUP_INFO "[+] Adding $TOOL alias"
+                TOOL_NAME=$(echo "$TOOL" | cut -d / -f 4)
+                if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
+                    echo "alias $TOOL_NAME='python2 $TOOL'" >>~/.bashrc
+                fi
             fi
-            rm -f "$TOOL"
+        done
+
+        # remove unnecessary files and directories
+        sudo rm -rf $DSTOOLS_DIR/OSX
+        sudo rm -rf $DSTOOLS_DIR/*.exe $DSTOOLS_DIR/*.dll
+        sudo rm -rf $DSTOOLS_DIR/Linux/eicargen $DSTOOLS_DIR/Linux/xorsearch-*
+
+        # change permissions
+        sudo chown "$USER":"$USER" $DSTOOLS_DIR/Linux/*
+        sudo chmod +x $DSTOOLS_DIR/Linux/*
+
+        for TOOL in "$DSTOOLS_DIR"/Linux/*; do
+            SETUP_INFO "[+] Adding $TOOL alias"
+            TOOL_NAME=$(echo "$TOOL" | cut -d / -f 5)
+            if ! grep "alias $TOOL_NAME" ~/.bashrc >/dev/null; then
+                echo "alias $TOOL_NAME='$TOOL'" >>~/.bashrc
+            fi
+
         done
     fi
 
-    XOR_TOOLS=(XORSearch_V1_11_3.zip XORStrings_V0_0_1.zip)
-    for TOOL in "${XOR_TOOLS[@]}"; do
-        TOOL_NAME=$(echo "$TOOL" | tr "[:upper:]" "[:lower:]" | awk -F_ '{print $1}')
-        sudo mkdir $DSTOOLS_DIR/"$TOOL_NAME"
-        INFO "[+] Downloading $TOOL"
-        wget -c -q "$URL""$TOOL" --no-hsts
-        INSTALL "[+] Installing $TOOL_NAME"
-        sudo unzip -q "$TOOL" -d $DSTOOLS_DIR/"$TOOL_NAME"
-
-        INFO "[+] Adding $TOOL_NAME alias"
-        if ! grep "alias xorstrings" ~/.bashrc >/dev/null; then
-            echo "alias xorstrings='$DSTOOLS_DIR/xorstrings/xorstrings'" >>~/.bashrc
-        fi
-
-        if ! grep "alias xorsearch-x86-s" ~/.bashrc >/dev/null; then
-            echo "alias xorsearch-x86-s='$DSTOOLS_DIR/xorsearch/xorsearch-x86-static'" >>~/.bashrc
-        fi
-
-        if ! grep "alias xorsearch-x86-d" ~/.bashrc >/dev/null; then
-            echo "alias xorsearch-x86-dc='$DSTOOLS_DIR/xorsearch/xorsearch-x86-dynamic'" >>~/.bashrc
-        fi
-
-        if ! grep "alias xorsearch-x64-s" ~/.bashrc >/dev/null; then
-            echo "alias xorsearch-x64-s='$DSTOOLS_DIR/xorsearch/xorsearch-x64-static'" >>~/.bashrc
-        fi
-
-        if ! grep "alias xorsearch-x64-d" ~/.bashrc >/dev/null; then
-            echo "alias xorsearch-x64-d='$DSTOOLS_DIR/xorsearch/xorsearch-x64-dynamic'" >>~/.bashrc
-        fi
-        rm -f "$TOOL"
-    done
-
-    # xorstrings clean-up
-    sudo gcc -w $DSTOOLS_DIR/xorstrings/XORStrings.c -o $DSTOOLS_DIR/xorstrings/xorstrings
-    sudo rm -rf $DSTOOLS_DIR/xorstrings/OSX $DSTOOLS_DIR/xorstrings/XORStrings.c $DSTOOLS_DIR/xorstrings/xorstrings.exe
-    sudo chown "$USER":"$USER" $DSTOOLS_DIR/xorstrings/xorstrings
-
-    # xorsearch clean-up
-    sudo mv $DSTOOLS_DIR/xorsearch/Linux/* $DSTOOLS_DIR/xorsearch/ && sudo rm -rf $DSTOOLS_DIR/xorsearch/Linux/
-    sudo rm -rf $DSTOOLS_DIR/xorsearch/OSX $DSTOOLS_DIR/xorsearch/Windows/ $DSTOOLS_DIR/xorsearch/xorsearch.exe $DSTOOLS_DIR/xorsearch/XORSearch.c
-    sudo chown "$USER":"$USER" $DSTOOLS_DIR/xorsearch/xorsearch-x*
-    chmod +x $DSTOOLS_DIR/xorsearch/xorsearch-x*
+    kill -9 $SPIN_PID
 }
 
 bulk_ext_install() {
@@ -692,6 +666,8 @@ install_py_mods() {
         INSTALL "[+] Installing Python module $mod"
         sudo python3 -m pip -q install "$mod"
     done
+    # ViperMonkey
+    sudo python2 -m pip install -U https://github.com/decalage2/ViperMonkey/archive/master.zip
     kill -9 $SPIN_PID
 }
 
@@ -751,7 +727,7 @@ clean_up() {
     # install packages
     install_pkgs
 
-    INFO "[+] Setting up shell and paths"
+    SETUP_INFO "[+] Setting up shell and paths"
     setup_paths
 
     # install optional packages
@@ -772,16 +748,16 @@ clean_up() {
     INSTALL "[+] Installing Python Modules"
     install_py_mods
 
-    INFO "[+] Removing boilerplate home directories"
+    SETUP_INFO "[+] Removing boilerplate home directories"
     remove_bpdirs
 
-    INFO "[+] Setting terminator as the default terminal emulator"
+    SETUP_INFO "[+] Setting terminator as the default terminal emulator"
     replace_term
 
     clean_up
 } 2>>$LOGFILE
 
-INFO "[+] Updating bash prompt"
+SETUP_INFO "[+] Updating bash prompt"
 
 SUCCESS "Check $LOGFILE for possible errors encountered"
 
