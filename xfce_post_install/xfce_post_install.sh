@@ -408,7 +408,7 @@ install_opt_pkgs() {
                 if ! [ -d "$NETMINER_DIR" ]; then
                     INSTALL "[+] Installing networkminer"
                     wget -c -q https://www.netresec.com/?download=NetworkMiner -O /tmp/nm.zip >/dev/null 2>>$LOGFILE
-                    sudo unzip -q /tmp/nm.zip -d /opt/
+                    sudo unzip -o -q /tmp/nm.zip -d /opt/
                     sudo chmod +x "$NETMINER_DIR"/NetworkMiner.exe
                     sudo chmod -R go+w "$NETMINER_DIR"AssembledFiles/
                     sudo chmod -R go+w "$NETMINER_DIR"Captures/
