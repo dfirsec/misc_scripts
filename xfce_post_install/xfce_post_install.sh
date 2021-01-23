@@ -667,6 +667,8 @@ install_py_mods() {
         sudo python3 -m pip -q install "$mod"
     done
     # ViperMonkey
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py --silent
+    sudo python2 get-pip.py >/dev/null 2>>$LOGFILE
     sudo python2 -m pip install -U https://github.com/decalage2/ViperMonkey/archive/master.zip
     kill -9 $SPIN_PID
 }
@@ -711,8 +713,8 @@ clean_up() {
     sudo apt-get -qq autoremove -y >/dev/null 2>>$LOGFILE
 
     INFO "[+] Emptying the trash"
-    rm -rf /home/*/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
-    rm -rf /root/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
+    sudo rm -rf /home/*/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
+    sudo rm -rf /root/.local/share/Trash/*/** >/dev/null 2>>$LOGFILE
 }
 
 # Processing Stage
@@ -733,13 +735,13 @@ clean_up() {
     # install optional packages
     install_opt_pkgs
 
-    INSTALL "[+] Installing snap packages"
+    INSTALL "[+] Installing Snap Packages"
     snap_tools
 
-    INSTALL "[+] Installing Didier's tools"
+    INSTALL "[+] Installing Didier's Tools Suite"
     didier_tools
 
-    INSTALL "[+] Installing bulk_extractor"
+    INSTALL "[+] Installing Bulk Extractor"
     bulk_ext_install
 
     INSTALL "[+] Installing Ruby Gems"
