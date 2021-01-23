@@ -80,8 +80,7 @@ update_sys() {
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
     {
-        sudo dpkg --configure -a
-        sudo apt-get -qq clean
+        sudo apt-get -qq autoclean $$ apt-get clear cache
         sudo apt-get -qq update
         sudo apt-get -qq upgrade -y
         sudo apt-get -qq autoremove -y
@@ -668,7 +667,7 @@ install_py_mods() {
         INSTALL "[+] Installing Python module $mod"
         sudo python3 -m pip -q install "$mod"
     done
-    
+
     # ViperMonkey
     INSTALL "[+] Installing ViperMonkey"
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py --silent
