@@ -404,14 +404,15 @@ install_opt_pkgs() {
             #   networkminer
             ############################
             if [[ $pkg == "networkminer" ]]; then
-                NETMINER_DIR="/opt/NetworkMiner*"
+                NETMINER_DIR="/opt/NetworkMiner"
                 if ! [ -d "$NETMINER_DIR" ]; then
                     INSTALL "[+] Installing networkminer"
                     wget -c -q https://www.netresec.com/?download=NetworkMiner -O /tmp/nm.zip >/dev/null 2>>$LOGFILE
                     sudo unzip -o -q /tmp/nm.zip -d /opt/
+                    sudo mv /opt/NetworkMiner* $NETMINER_DIR
                     sudo chmod +x "$NETMINER_DIR"/NetworkMiner.exe
-                    sudo chmod -R go+w "$NETMINER_DIR"AssembledFiles/
-                    sudo chmod -R go+w "$NETMINER_DIR"Captures/
+                    sudo chmod -R go+w "$NETMINER_DIR"/AssembledFiles/
+                    sudo chmod -R go+w "$NETMINER_DIR"/Captures/
                 fi
                 SETUP_INFO "[+] Adding networkminer alias"
                 if ! grep "alias networkminer" ~/.bashrc >/dev/null; then
