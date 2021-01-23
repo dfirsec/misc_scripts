@@ -80,7 +80,7 @@ update_sys() {
     SPIN_PID=$!
     trap 'kill -9 $SPIN_PID' $(seq 0 15)
     {
-        sudo dpkg –configure -a
+        sudo dpkg --configure -a
         sudo apt-get -qq clean
         sudo apt-get -qq update
         sudo apt-get -qq upgrade -y
@@ -522,7 +522,7 @@ install_opt_pkgs() {
 }
 
 snap_tools() {
-    SNAP_PKGS=(spotify volatility-phocean)
+    SNAP_PKGS=(volatility-phocean)
     sudo snap install "${SNAP_PKGS[@]}" >/dev/null 2>>$LOGFILE
     SETUP_INFO "[+] Adding volatility2 alias"
     if ! grep "alias vol2" ~/.bashrc >/dev/null; then
@@ -668,7 +668,9 @@ install_py_mods() {
         INSTALL "[+] Installing Python module $mod"
         sudo python3 -m pip -q install "$mod"
     done
+    
     # ViperMonkey
+    INSTALL "[+] Installing ViperMonkey"
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py --silent
     sudo python2 get-pip.py >/dev/null 2>>$LOGFILE
     sudo python2 -m pip install -U https://github.com/decalage2/ViperMonkey/archive/master.zip >/dev/null 2>>$LOGFILE
