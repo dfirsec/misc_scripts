@@ -302,7 +302,7 @@ install_opt_pkgs() {
                     sudo apt-get -qq install atom -y
                 } >/dev/null 2>>$LOGFILE
             fi
-            
+
             ############################
             #   autotimeliner
             ############################
@@ -552,12 +552,14 @@ install_opt_pkgs() {
                     sudo apt-get -qq update
                     sudo apt-get -qq install code -y
                 } >/dev/null 2>>$LOGFILE
+
                 # rm vscode sources list to avoide conflict
                 if [ -f /etc/apt/sources.list.d/vscode.list ]; then
                     sudo rm /etc/apt/sources.list.d/vscode.list
+                    sudo apt-get -qq update
                 fi
 
-                # intall option
+                ## intall option
                 # wget -q https://go.microsoft.com/fwlink/?LinkID=760868 --no-hsts -O vscode.deb
                 # sudo dpkg -i vscode.deb &>/dev/null
             fi
